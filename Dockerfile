@@ -55,7 +55,7 @@ RUN apt-get update && apt install -y \
     libosmesa6-dev \
     patchelf \
     ffmpeg \
-    xvfb
+    xvfb \
     rm -rf /var/lib/apt/lists/*
 RUN . deactivate
 

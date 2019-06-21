@@ -30,13 +30,9 @@ RUN curl -o ~/miniconda.sh -O  https://repo.continuum.io/miniconda/Miniconda3-la
     /opt/conda/bin/conda clean -ya
 ENV PATH /opt/conda/bin:$PATH
 
-
-# Conda environment
-RUN conda create -n rl-learn python=3.6
-
+RUN git clone https://github.com/ripl-ttic/rl-learn.git
+RUN /bin/bash -c "cd rl-learn; conda create --name rl-learn python=3.6 --file requirements.txt"
 RUN /bin/bash -c ". activate rl-learn; conda install pytorch torchvision cudatoolkit=9.0 -c pytorch"
-RUN git clone git clone https://github.com/ripl-ttic/rl-learn.git
-RUN /bin/bash -c ". activate rl-learn; cd rl-learn; pip install -r requirements.txt"
 
 RUN git clone https://github.com/cbschaff/pytorch-dl.git
 RUN /bin/bash -c ". activate rl-learn; cd pytorch-dl; pip install -e ."
@@ -55,9 +51,9 @@ RUN apt-get update && apt install -y \
     libosmesa6-dev \
     patchelf \
     ffmpeg \
-    xvfb \
+    xvfb &&\
     rm -rf /var/lib/apt/lists/*
 RUN . deactivate
 
 RUN git clone https://github.com/openai/gym.git
-RUN /bin/bash -c ". activate deepassist; cd gym; pip install -e '.[all]'"
+RUN /bin/bash -c ". activate rl-learn; cd gym; pip install -e '.[atari]'"

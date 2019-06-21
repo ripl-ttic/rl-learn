@@ -9,7 +9,6 @@ c-ares=1.15.0=h7b6447c_1
 ca-certificates=2019.5.15=0
 certifi=2019.3.9=py36_0
 cffi=1.12.3=py36h2e261b9_0
-cudatoolkit=9.0=h13b8566_0
 cudnn=7.6.0=cuda9.0_0
 cupti=9.0.176=0
 freetype=2.9.1=h8a8886c_1
@@ -45,7 +44,6 @@ pip=19.1.1=py36_0
 protobuf=3.8.0=py36he6710b0_0
 pycparser=2.19=py36_0
 python=3.6.8=h0371630_0
-pytorch=1.1.0=py3.6_cuda9.0.176_cudnn7.5.1_0
 readline=7.0=h7b6447c_5
 scipy=1.2.1=py36h7c811a0_0
 setuptools=41.0.1=py36_0
@@ -58,7 +56,6 @@ tensorflow-estimator=1.13.0=py_0
 tensorflow-gpu=1.13.1=h0d30ee6_0
 termcolor=1.1.0=py36_1
 tk=8.6.8=hbc83047_0
-torchvision=0.3.0=py36_cu9.0.176_1
 werkzeug=0.15.4=py_0
 wheel=0.33.4=py36_0
 xz=5.2.4=h14c3975_4

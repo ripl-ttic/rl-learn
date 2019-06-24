@@ -45,7 +45,7 @@ class LEARN(nn.Module):
             text_out = self.infersent(langs)
         else:
             print(langs.shape)
-            packed_langs = pack_padded_sequence(langs, lengths.cpu().numpy(), batch_first=True)
+            packed_langs = pack_padded_sequence(langs, lengths.cpu().numpy(), batch_first=True, enforce_sorted=False)
             print(packed_langs.data.shape)
             print(packed_langs.batch_sizes)
             print(sum(packed_langs.batch_sizes))

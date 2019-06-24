@@ -53,6 +53,7 @@ class LEARN(nn.Module):
             packed_out, (_,_) = self.gru(packed_langs)
             print(packed_out)
             print(packed_out.data.shape)
+            print(packed_out.batch_sizes)
             text_out, _ = pad_packed_sequence(packed_out, batch_first=True)
             text_out = torch.mean(text_out, 1)
 

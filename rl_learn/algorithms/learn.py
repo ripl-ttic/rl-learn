@@ -136,14 +136,9 @@ class RunLearn(object):
         labels = torch.LongTensor(labels)
         lengths, idx = lengths.sort(0, descending=True)
         langs = langs[idx]
-        actions, langs, lengths, labels = actions.to(self.device), langs.to(self.device), lengths.to(self.device), labels.to(self.device)
-        print(actions.shape)
-        print(langs.shape)
-        print(lengths.shape)
-        print(labels.shape)
-        if training:
+        actions, langs, lengths, labels = actions.to(self.device), langs.to(self.device), lengths.to(self.device), labels.to(self.device) 
+        if training == 1:
             print("training")
-            self.net.train()
             logits = self.net(actions, langs, lengths)
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)
@@ -155,10 +150,11 @@ class RunLearn(object):
 
         else:
             print("evaluating")
-            self.net.eval()
+            self.net.eval(False)
             logits = self.net(actions, langs, lengths)
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)
+            self.net.train(True)
 
         print(loss)
         return pred, loss, labels

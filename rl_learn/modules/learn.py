@@ -37,7 +37,7 @@ class LEARN(nn.Module):
 
         ac_out = self.act_mlp(actions)
         if self.lang_enc == "onehot":
-            langs = torch.LongTensor(langs)
+            langs = langs.type(torch.LongTensor)
             langs = self.emb(langs)
 
         if self.lang_enc == "infersent":

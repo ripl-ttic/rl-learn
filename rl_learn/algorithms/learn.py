@@ -129,7 +129,7 @@ class RunLearn(object):
             param_group['lr'] = lr
 
         actions, langs, labels = zip(*batch_data)
-        langs = np.array(langs)
+        langs = np.asarray(langs)
         langs, lengths = get_batch_lang_lengths(langs, self.lang_enc)
         actions = torch.FloatTensor(actions)
         langs, lengths = torch.from_numpy(langs), torch.from_numpy(lengths).long()

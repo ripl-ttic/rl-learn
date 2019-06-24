@@ -152,8 +152,7 @@ class RunLearn(object):
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)
             self.net.train(True)
-
-        print(loss)
+            
         return pred, loss, labels
 
     def log(self, acc_train, loss_train, acc_val, loss_val):

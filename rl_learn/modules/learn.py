@@ -32,7 +32,7 @@ class LEARN(nn.Module):
         self.concat_mlp = MLP(d1+d2, 2, dropout=dropout)
 
     def forward(self, actions, langs, lengths):
-        ac_out = act_mlp(actions)
+        ac_out = self.act_mlp(actions)
         if self.lang_enc == "onehot":
             langs = langs.long()
             langs = self.emb(langs)

@@ -2,7 +2,7 @@ import numpy as np
 import gin
 
 
-def pad_seq_feature(self, seq, length):
+def pad_seq_feature(seq, length):
     seq = np.asarray(seq)
     if length < np.size(seq, 0):
             return seq[:length]
@@ -11,7 +11,7 @@ def pad_seq_feature(self, seq, length):
     result[0:seq.shape[0], :] = seq
     return result
 
-def pad_seq_onehot(self, seq, length):
+def pad_seq_onehot(seq, length):
     seq = np.asarray(seq)
     if length < np.size(seq, 0):
             return seq[:length]

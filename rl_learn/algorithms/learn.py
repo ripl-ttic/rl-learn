@@ -1,4 +1,5 @@
 import gin, os, time
+from random import shuffle
 from dl.util import Checkpointer, logger, rng
 
 import torch

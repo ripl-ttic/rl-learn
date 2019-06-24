@@ -15,7 +15,7 @@ class MLP(nn.Module):
 
         self.dropout = nn.Dropout(p=1-dropout)
 
-        self.linears = nn.Module(self.linears)
+        self.linears = nn.ModuleList(self.linears)
 
         self.reset_parameters()
 

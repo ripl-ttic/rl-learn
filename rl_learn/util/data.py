@@ -16,16 +16,16 @@ class Data(object):
         n_data=100000,
         traj_len=150
     ):
-        self.load_data()
-        self.load_actions()
-        self.split_data()
-        self.create_data()
         self.actions_file = actions_file
         self.data_file = data_file
         self.n_data = n_data
         self.lang_enc = lang_enc
         self.traj_len = traj_len
         self.n_actions = n_actions
+        self.load_data()
+        self.load_actions()
+        self.split_data()
+        self.create_data()
 
     def load_actions(self):
         self.clip_to_actions = {}

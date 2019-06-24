@@ -138,7 +138,6 @@ class RunLearn(object):
         langs = langs[idx]
         actions, langs, lengths, labels = actions.to(self.device), langs.to(self.device), lengths.to(self.device), labels.to(self.device) 
         if training == 1:
-            print("training")
             logits = self.net(actions, langs, lengths)
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)
@@ -149,7 +148,6 @@ class RunLearn(object):
             self.global_step += 1
 
         else:
-            print("evaluating")
             self.net.eval(False)
             logits = self.net(actions, langs, lengths)
             loss = self.criterion(logits, labels)

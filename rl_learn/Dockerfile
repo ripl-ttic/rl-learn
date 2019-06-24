@@ -34,9 +34,6 @@ RUN git clone https://github.com/ripl-ttic/rl-learn.git
 RUN /bin/bash -c "cd rl-learn; conda create --name rl-learn python=3.6 --file requirements.txt"
 RUN /bin/bash -c ". activate rl-learn; conda install pytorch torchvision cudatoolkit=9.0 -c pytorch"
 
-RUN git clone https://github.com/cbschaff/pytorch-dl.git
-RUN /bin/bash -c ". activate rl-learn; cd pytorch-dl; pip install -e ."
-
 RUN . activate rl-learn
 RUN apt-get update && apt install -y \
     python3-dev \
@@ -57,3 +54,11 @@ RUN . deactivate
 
 RUN git clone https://github.com/openai/gym.git
 RUN /bin/bash -c ". activate rl-learn; cd gym; pip install -e '.[atari]'"
+
+RUN git clone https://github.com/openai/baselines.git
+RUN /bin/bash -c ". activate rl-learn; cd baselines; pip install -e ."
+
+RUN pip install tb-nightly
+
+RUN git clone https://github.com/cbschaff/pytorch-dl.git
+RUN /bin/bash -c ". activate deepassist; cd pytorch-dl; pip install -e ."

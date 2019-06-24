@@ -25,7 +25,6 @@ class RunLearn(object):
     ):
         self.logdir = logdir
         self.ckptr = Checkpointer(os.path.join(self.logdir, 'ckpts'))
-        self.save_period = save_period
         self.data = Data(actions_file, data_file, lang_enc, n_actions)
 
         self.device = torch.device("cuda:0" if gpu and torch.cuda.is_available() else "cpu")

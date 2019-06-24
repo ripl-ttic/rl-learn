@@ -52,7 +52,7 @@ class RunLearn(object):
             'epoch': self.epoch
         }
 
-    def load_state_dict(self):
+    def load_state_dict(self, state_dict):
         self.net.load_state_dict(state_dict['net'])
         self.opt.load_state_dict(state_dict['opt'])
         self.epoch = state_dict['epoch']

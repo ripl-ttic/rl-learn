@@ -133,6 +133,9 @@ class RunLearn(object):
         actions = torch.FloatTensor(actions)
         langs, lengths = torch.from_numpy(langs), torch.from_numpy(lengths).long()
         labels = torch.LongTensor(labels)
+
+        lengths, idx = lengths.sort(0, descending=True)
+        langs = langs[idx]
         actions, langs, lengths, labels = actions.to(self.device), langs.to(self.device), lengths.to(self.device), labels.to(self.device)
         if training:
             self.net.train()

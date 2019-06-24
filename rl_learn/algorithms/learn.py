@@ -139,7 +139,7 @@ class RunLearn(object):
         if training:
             self.net.train()
             logits = self.net(actions, langs, lengths)
-            labels = F.one_hot(labels.long())
+            # labels = F.one_hot(labels.long())
             print(logits)
             print(labels)
             print(logits.shape)
@@ -155,7 +155,7 @@ class RunLearn(object):
         else:
             self.net.eval()
             logits = self.net(actions, langs, lengths)
-            labels = F.one_hot(labels.long())
+            # labels = F.one_hot(labels.long())
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)
 

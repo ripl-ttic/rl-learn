@@ -34,7 +34,6 @@ class LEARN(nn.Module):
         self.concat_mlp = MLP(d1+d2, 2, dropout=dropout)
 
     def forward(self, actions, langs, lengths):
-        print(self)
 
         ac_out = self.act_mlp(actions)
         if self.lang_enc == "onehot":
@@ -45,12 +44,9 @@ class LEARN(nn.Module):
         if self.lang_enc == "infersent":
             text_out = self.infersent(langs)
         else:
-            print(lengths.cpu().numpy())
-            print(lengths.cpu().numpy().shape)
             packed_langs = pack_padded_sequence(langs, lengths.cpu().numpy(), batch_first=True)
             packed_langs = packed_langs.float()
             packed_out, (_,_) = self.gru(packed_langs)
-            print(packed_out.data.shape)
             text_out, _ = pad_packed_sequence(packed_out, batch_first=True)
             text_out = torch.mean(text_out, 1)
 

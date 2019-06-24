@@ -122,6 +122,7 @@ class RunLearn(object):
         return correct / len(data), loss / len(data)
 
     def run_batch(self, batch_data, training):
+        print(self.global_step + 1)
         self.opt.zero_grad()
         lr = self.lr * 0.95 ** (self.global_step // 10000)
         for param_group in self.opt.param_groups:
@@ -136,14 +137,14 @@ class RunLearn(object):
         lengths, idx = lengths.sort(0, descending=True)
         langs = langs[idx]
         actions, langs, lengths, labels = actions.to(self.device), langs.to(self.device), lengths.to(self.device), labels.to(self.device)
+        print(actions.shape)
+        print(langs.shape)
+        print(lengths.shape)
+        print(labels.shape)
         if training:
+            print("training")
             self.net.train()
             logits = self.net(actions, langs, lengths)
-            # labels = F.one_hot(labels.long())
-            print(logits)
-            print(labels)
-            print(logits.shape)
-            print(labels.shape)
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)
 
@@ -153,9 +154,9 @@ class RunLearn(object):
             self.global_step += 1
 
         else:
+            print("evaluating")
             self.net.eval()
             logits = self.net(actions, langs, lengths)
-            # labels = F.one_hot(labels.long())
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)
 

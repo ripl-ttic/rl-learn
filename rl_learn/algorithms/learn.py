@@ -141,7 +141,7 @@ class RunLearn(object):
         actions, langs, lengths, labels = actions.to(self.device), langs.to(self.device), lengths.to(self.device), labels.to(self.device)
         if training:
             self.net.train()
-            logits = self.net(actions, langs, labels)
+            logits = self.net(actions, langs, lengths)
             labels = F.one_hot(labels.long())
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)
@@ -153,7 +153,7 @@ class RunLearn(object):
 
         else:
             self.net.eval()
-            logits = self.net(actions, langs, labels)
+            logits = self.net(actions, langs, lengths)
             labels = F.one_hot(labels.long())
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)

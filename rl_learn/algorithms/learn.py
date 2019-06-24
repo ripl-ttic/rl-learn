@@ -20,23 +20,27 @@ class RunLearn(object):
         vocab_size=296,
         n_actions=18,
         epochs=50,
-        batch_size=32
+        batch_size=32,
+        gpu=True
     ):
         self.logdir = logdir
         self.ckptr = Checkpointer(os.path.join(self.logdir, 'ckpts'))
         self.save_period = save_period
         self.data = Data(actions_file, data_file, lang_enc, n_actions)
 
+        self.device = torch.device("cuda:0" if gpu and torch.cuda.is_available() else "cpu")
         self.net = LEARN(vocab_size, n_actions)
+        self.net.to(self.device)
         self.criterion = nn.CrossEntropyLoss()
         self.opt = optim.Adam(self.net.parameters())
         self.lr = lr
 
         logger.configure(logdir, ['stdout', 'log'])
 
+        self.epochs = epochs
         self.epoch = 0
         self.global_step = 0
-    
+
     def state_dict(self):
         return {
             'net': self.net.state_dict(),
@@ -122,6 +126,7 @@ class RunLearn(object):
         actions, langs, labels = zip(*batch_data)
         langs = np.array(langs)
         langs, lengths = get_batch_lang_lengths(lang_list)
+        actions, langs, lengths, labels = actions.to(self.device), langs.to(self.device), lengths.to(self.device), labels.to(self.device)
         if training:
             self.net.train()
             logits = self.net(actions, langs, labels)

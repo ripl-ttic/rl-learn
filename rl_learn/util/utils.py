@@ -19,7 +19,7 @@ def pad_seq_onehot(self, seq, length):
     result[0:seq.shape[0]] = seq
     return result
 
-def get_batch_lang_lengths(self, lang_list, lang_enc):
+def get_batch_lang_lengths(lang_list, lang_enc):
     if lang_enc == 'onehot':
         langs = []
         lengths = []

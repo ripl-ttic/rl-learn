@@ -127,7 +127,7 @@ class RunLearn(object):
 
         actions, langs, labels = zip(*batch_data)
         langs = np.array(langs)
-        langs, lengths = get_batch_lang_lengths(langs)
+        langs, lengths = get_batch_lang_lengths(langs, self.lang_enc)
         actions, langs, lengths, labels = actions.to(self.device), langs.to(self.device), lengths.to(self.device), labels.to(self.device)
         if training:
             self.net.train()

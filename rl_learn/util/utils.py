@@ -25,7 +25,7 @@ def get_batch_lang_lengths(lang_list, lang_enc):
         lengths = []
         for i, l in enumerate(lang_list):
             lengths.append(len(l))
-            langs.append(np.array(self.pad_seq_onehot(l, 20)))
+            langs.append(np.array(pad_seq_onehot(l, 20)))
         
         langs = np.array(langs)
         lengths = np.array(lengths)
@@ -35,7 +35,7 @@ def get_batch_lang_lengths(lang_list, lang_enc):
         lengths = []
         for i, l in enumerate(lang_list):
             lengths.append(len(l))
-            langs.append(np.array(self.pad_seq_feature(l, 20)))
+            langs.append(np.array(pad_seq_feature(l, 20)))
         
         langs = np.array(langs)
         lengths = np.array(lengths)

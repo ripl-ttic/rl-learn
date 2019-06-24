@@ -147,7 +147,7 @@ class RunLearn(object):
             self.global_step += 1
 
         else:
-            self.net.eval(False)
+            self.net.train(False)
             logits = self.net(actions, langs, lengths)
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)

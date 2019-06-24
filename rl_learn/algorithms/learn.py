@@ -132,7 +132,7 @@ class RunLearn(object):
         langs = np.asarray(langs)
         langs, lengths = get_batch_lang_lengths(langs, self.lang_enc)
         actions = torch.FloatTensor(actions)
-        langs, lengths = torch.from_numpy(langs), torch.from_numpy(lengths).long()
+        langs, lengths = torch.FloatTensor(langs), torch.LongTensor(lengths)
         labels = torch.LongTensor(labels)
         # lengths, idx = lengths.sort(0, descending=True)
         # langs = langs[idx]

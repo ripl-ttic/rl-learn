@@ -28,7 +28,7 @@ def get_batch_lang_lengths(lang_list, lang_enc):
             langs.append(np.array(pad_seq_onehot(l, 20)))
         
         langs = np.array(langs)
-        lengths = np.array(lengths)
+        lengths = np.clip(np.array(lengths), 0, 20)
         return langs, lengths
     elif lang_enc == 'glove':
         langs = []
@@ -38,7 +38,7 @@ def get_batch_lang_lengths(lang_list, lang_enc):
             langs.append(np.array(pad_seq_feature(l, 20)))
         
         langs = np.array(langs)
-        lengths = np.array(lengths)
+        lengths = np.clip(np.array(lengths), 0, 20)
         return langs, lengths
     elif lang_enc == 'infersent':
         return lang_list, []

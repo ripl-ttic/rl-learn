@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 import gin
+import numpy as np
 
 from rl_learn.modules import MLP
 
@@ -28,6 +29,7 @@ class LEARN(nn.Module):
 
         self.infersent = nn.Linear(infersent_emb_size, d2)
         self.emb = nn.Embedding(vocab_size, emb_size)
+
         self.gru = nn.GRU(emb_size, d2, num_layers=n_layers, batch_first=True)
         self.concat_mlp = MLP(d1+d2, 2, dropout=dropout)
 
@@ -43,6 +45,8 @@ class LEARN(nn.Module):
         if self.lang_enc == "infersent":
             text_out = self.infersent(langs)
         else:
+            print(lengths.cpu().numpy())
+            print(lengths.cpu().numpy().shape)
             packed_langs = pack_padded_sequence(langs, lengths.cpu().numpy(), batch_first=True)
             packed_langs = packed_langs.float()
             packed_out, (_,_) = self.gru(packed_langs)

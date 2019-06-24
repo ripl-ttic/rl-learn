@@ -122,6 +122,7 @@ class RunLearn(object):
         return correct / len(data), loss / len(data)
 
     def run_batch(self, batch_data, training):
+        print("")
         print(self.global_step + 1)
         self.opt.zero_grad()
         lr = self.lr * 0.95 ** (self.global_step // 10000)

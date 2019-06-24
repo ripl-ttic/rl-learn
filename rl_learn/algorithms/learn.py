@@ -38,6 +38,8 @@ class RunLearn(object):
 
         logger.configure(logdir, ['stdout', 'log'])
 
+        self.lang_enc = lang_enc
+
         self.epochs = epochs
         self.batch_size = batch_size
         self.epoch = 0

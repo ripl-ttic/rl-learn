@@ -12,8 +12,8 @@ from rl_learn.modules import MLP
 class LEARN(nn.Module):
     def __init__(self, 
         vocab_size,
-        n_actions
-        lang_enc="onehot",
+        n_actions,
+        lang_enc,
         n_layers=2,
         emb_size=50,
         infersent_emb_size=4096,

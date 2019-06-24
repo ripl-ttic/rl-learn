@@ -29,7 +29,7 @@ class RunLearn(object):
         self.data = Data(actions_file, data_file, lang_enc, n_actions)
 
         self.device = torch.device("cuda:0" if gpu and torch.cuda.is_available() else "cpu")
-        self.net = LEARN(vocab_size, n_actions)
+        self.net = LEARN(vocab_size, n_actions, lang_enc)
         self.net.to(self.device)
         self.criterion = nn.CrossEntropyLoss()
         self.opt = optim.Adam(self.net.parameters())

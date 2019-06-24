@@ -33,20 +33,20 @@ class LEARN(nn.Module):
 
     def forward(self, actions, langs, lengths):
         print(self)
-        print(actions.shape)
-        print(langs.shape)
-        print(lengths.shape)
 
         ac_out = self.act_mlp(actions)
         if self.lang_enc == "onehot":
             langs = langs.long()
             langs = self.emb(langs)
+
+        print(langs.shape)
         if self.lang_enc == "infersent":
             text_out = self.infersent(langs)
         else:
             packed_langs = pack_padded_sequence(langs, lengths.cpu().numpy(), batch_first=True)
             packed_langs = packed_langs.float()
-            packed_out, _ = self.gru(packed_langs)
+            packed_out, (_,_) = self.gru(packed_langs)
+            print(packed_out.shape)
             text_out, _ = pad_packed_sequence(packed_out, batch_first=True)
             text_out = torch.mean(text_out, 1)
 

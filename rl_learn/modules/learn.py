@@ -43,6 +43,7 @@ class LEARN(nn.Module):
         if self.lang_enc == "infersent":
             text_out = self.infersent(langs)
         else:
+            print(langs.shape)
             print(sum(lengths.cpu().numpy()))
             packed_langs = pack_padded_sequence(langs, lengths.cpu().numpy(), batch_first=True, enforce_sorted=False)
             print(packed_langs.data.shape)

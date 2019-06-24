@@ -122,21 +122,18 @@ class RunLearn(object):
         return correct / len(data), loss / len(data)
 
     def run_batch(self, batch_data, training):
-        self.opt.zero_grad()
-        lr = self.lr * 0.95 ** (self.global_step // 10000)
-        for param_group in self.opt.param_groups:
-            param_group['lr'] = lr
-
         actions, langs, labels = zip(*batch_data)
         langs = np.asarray(langs)
         langs, lengths = get_batch_lang_lengths(langs, self.lang_enc)
         actions = torch.FloatTensor(actions)
         langs, lengths = torch.FloatTensor(langs), torch.LongTensor(lengths)
         labels = torch.LongTensor(labels)
-        # lengths, idx = lengths.sort(0, descending=True)
-        # langs = langs[idx]
         actions, langs, lengths, labels = actions.to(self.device), langs.to(self.device), lengths.to(self.device), labels.to(self.device) 
         if training == 1:
+            self.opt.zero_grad()
+            lr = self.lr * 0.95 ** (self.global_step // 10000)
+            for param_group in self.opt.param_groups:
+                param_group['lr'] = lr
             logits = self.net(actions, langs, lengths)
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)

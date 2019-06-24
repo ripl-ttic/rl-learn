@@ -111,7 +111,7 @@ class RunLearn(object):
 
         while start < len(data):
             batch_data = data[start:start+self.batch_size]
-            batch_pred, batch_loss = self.run_batch(batch_data, training)
+            batch_pred, batch_loss, batch_labels = self.run_batch(batch_data, training)
 
             start += self.batch_size
             loss += batch_loss    
@@ -159,7 +159,7 @@ class RunLearn(object):
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)
 
-        return pred, loss
+        return pred, loss, labels
 
     def log(self, acc_train, loss_train, acc_val, loss_val):
         logger.log("========================|  Epoch: {}  |========================".format(self.epoch))

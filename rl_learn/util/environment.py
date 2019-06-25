@@ -35,7 +35,7 @@ class SubprocVecEnvInfos(SubprocVecEnv):
         return _flatten_obs(obs), np.stack(rews), np.stack(dones), np.stack(infos)
 
 class DummyVecEnvInfos(DummyVecEnv):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, env_fns):
         super(DummyVecEnv, self).__init__(env_fns)
         self.n_episodes = 0
         self.n_goals_reached = 0

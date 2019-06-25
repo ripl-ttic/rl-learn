@@ -58,7 +58,7 @@ class RunLearn(object):
         self.epoch = state_dict['epoch']
 
     def save(self):
-        print("saving epoch {}".format(self.epoch))
+        # print("saving epoch {}".format(self.epoch))
         self.ckptr.save(self.state_dict(), self.epoch)
 
     def load(self, epoch=None):

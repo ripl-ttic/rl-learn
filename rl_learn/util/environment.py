@@ -20,8 +20,8 @@ from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
 
 class SubprocVecEnvInfos(SubprocVecEnv):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, env_fns):
+        super().__init__(env_fns)
         self.n_episodes = 0
         self.n_goals_reached = 0
 
@@ -36,7 +36,7 @@ class SubprocVecEnvInfos(SubprocVecEnv):
 
 class DummyVecEnvInfos(DummyVecEnv):
     def __init__(self, *args, **kwargs):
-        super(DummyVecEnv, self).__init__(*args, **kwargs)
+        super(DummyVecEnv, self).__init__(env_fns)
         self.n_episodes = 0
         self.n_goals_reached = 0
 

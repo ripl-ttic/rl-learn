@@ -22,7 +22,7 @@ from rl_learn.util import get_batch_lang_lengths, rgb2gray
 class SuccessWrapper(VecEnvWrapper):
     def __init__(self, venv):
         super().__init__(venv)
-        self.n_goal_reached = 0
+        self.n_goals_reached = 0
         self.n_episodes = 0
 
     def reset(self):

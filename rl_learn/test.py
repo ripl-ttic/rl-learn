@@ -15,7 +15,7 @@ def _make_env(env_fn, nenv):
         env = SubprocVecEnv([_env(i) for i in range(nenv)])
     else:
         env = DummyVecEnv([_env(0)])
-    # env = SuccessWrapper(env)
+    env = SuccessWrapper(env)
     tstart = 0
     return VecMonitor(env, max_history=100, tstart=tstart, tbX=True)
 
@@ -36,7 +36,9 @@ def make_env_(
 def make_env__():
     return gym.Make('MontezumaRevenge-v0')
 
-env = _make_env(make_env__, 2)
+env = _make_env(make_env_, 1)
 obs = env.reset()
 print(obs)
 print(env.step(3))
+print(env.n_goals_reached)
+print(env.n_episodes)

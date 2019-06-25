@@ -179,6 +179,10 @@ class GymEnvironment(object):
     @property
     def spec(self):
         return self.env.spec
+    
+    @property
+    def reward_range(self):
+        return self.env.reward_range
 
     @property
     def state(self):

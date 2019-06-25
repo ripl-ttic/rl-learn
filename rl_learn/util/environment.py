@@ -285,16 +285,15 @@ class GymEnvironment(object):
         self.net = LEARN(self.vocab_size, self.n_actions, self.lang_enc)
         self.net.load_state_dict(save_dict['net'])
         self.net.to(self.device)
-        print(self.net)
         sentence_id = (self.expt_id-1) * 3 + (self.descr_id-1)
         lang_data = pickle.load(open('data/test_lang_data.pkl', 'rb'), encoding='bytes')
         self.lang = lang_data[sentence_id][self.lang_enc]
-        print(self.lang)
 
     def compute_language_reward(self):
         if self.n_steps < 2:
             logits = None
         else:
+            
             s = np.sum(self.action_vector)
             action_list = np.array(self.action_vector)
             if s > 0:
@@ -304,8 +303,9 @@ class GymEnvironment(object):
             action_list = torch.from_numpy(action_list).float().to(self.device)
             lang_list = torch.from_numpy(lang_list).float().to(self.device)
             length_list = torch.from_numpy(length_list).long().to(self.device)
-
+            print(self.action_list)
             logits = self.net(action_list, lang_list, length_list).cpu().detach().numpy()
+            print(logits)
 
         if logits is None:
             self.potentials_list.append(0.)

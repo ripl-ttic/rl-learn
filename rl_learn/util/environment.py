@@ -187,7 +187,7 @@ class GymEnvironment(object):
     def observation_space(self):
         if self.mode == 'paper':
             spaces.Box(low=0.0, high=1.0, shape=self.dims)
-        elif self.mode == 'raw'
+        elif self.mode == 'raw':
             return self.env.observation_space
 
     @property

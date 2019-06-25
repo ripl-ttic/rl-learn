@@ -5,7 +5,6 @@ from baselines.common.vec_env.vec_env import VecEnvWrapper
 
 import os, sys, random
 import numpy as np
-from abc import abstractmethod
 from scipy.misc import imresize
 
 from PIL import Image
@@ -26,9 +25,8 @@ class SuccessWrapper(VecEnvWrapper):
         self.n_goal_reached = 0
         self.n_episodes = 0
 
-    @abstractmethod
     def reset(self):
-        pass
+        return self.venv.reset()
 
     def step_wait(self):
         obs, rews, dones, goals_reached = self.venv.step_wait()

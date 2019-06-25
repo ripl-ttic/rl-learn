@@ -36,6 +36,9 @@ class LEARN(nn.Module):
     def forward(self, actions, langs, lengths):
 
         ac_out = self.act_mlp(actions)
+        print(ac_out)
+        print(ac_out.shape)
+        print("")
         if self.lang_enc == "onehot":
             langs = langs.long()
             langs = self.emb(langs)
@@ -55,6 +58,7 @@ class LEARN(nn.Module):
             text_out = torch.mean(text_out, 1)
             print(text_out)
             print(text_out.shape)
+            print("")
 
         out = torch.cat((text_out, ac_out), 1)
 

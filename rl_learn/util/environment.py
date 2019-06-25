@@ -4,18 +4,22 @@ import random
 import numpy as np
 from scipy.misc import imresize
 
-from PIL import Image
-# from copy import deepcopy
+from PIL import Ima
 import tensorflow as tf
-# from itertools import groupby
-# import pdb
 import pickle
 import torch
-# sys.path.insert(0, 'learn/')
-# from learn_model import LearnModel
+
+import gin
 
 from rl_learn.util.tasks import *
 from rl_learn.util.utils1 import *
+
+
+@gin.configurable
+def make_env(expt_id, descr_id, model_dir, lang_coeff, noise, gamma, rank=0):
+    env = GymEnvironment(expt_id, descr_id, model_dir, lang_coeff, noise, gamma)
+    return Monitor(env, logger.get_dir() and os.path.join(logger.get_dir(), str(rank)))
+
 
 class GymEnvironment(object):
     def __init__(self, 

@@ -33,4 +33,4 @@ def make_env_(
 env = _make_env(make_env_, 1)
 obs = env.reset()
 print(obs)
-print
+print(env.step(3))

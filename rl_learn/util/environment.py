@@ -28,7 +28,7 @@ def make_env(
     noise=0., 
     rank=0
 ):
-    env = GymEnvironment(expt_id, descr_id, lang_enc, gamma, mode, lang_coeff, noise)
+    env = GymEnvironment(expt_id, descr_id, gamma, lang_enc, mode, lang_coeff, noise)
     return Monitor(env, logger.get_dir() and os.path.join(logger.get_dir(), str(rank)))
 
 

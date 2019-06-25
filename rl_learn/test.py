@@ -38,7 +38,3 @@ def make_env__():
 
 env = _make_env(make_env_, 1)
 obs = env.reset()
-print(obs)
-print(env.step(3))
-print(env.n_goals_reached)
-print(env.n_episodes)

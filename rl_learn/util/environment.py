@@ -1,6 +1,5 @@
 import gym
-import sys
-import random
+import os, sys, random
 import numpy as np
 from scipy.misc import imresize
 
@@ -11,6 +10,7 @@ import torch
 
 import gin
 from dl.util import Monitor
+from dl.util import logger
 
 from rl_learn.util.tasks import *
 from rl_learn.util.utils1 import *

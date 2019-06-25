@@ -267,7 +267,7 @@ class GymEnvironment(object):
             self.reward = 0.0
 
         if self.lang_coeff > 0.0:
-            lang_reward = self.args.lang_coeff * self.compute_language_reward()
+            lang_reward = self.lang_coeff * self.compute_language_reward()
             self.reward += lang_reward
             pass 
         if self.n_steps > self.max_steps:

@@ -23,8 +23,8 @@ from rl_learn.util import get_batch_lang_lengths, rgb2gray
 class SuccessWrapper(VecEnvWrapper):
     def __init__(self, venv):
         super().init(venv)
-        self.n_goal_reached
-        self.n_episodes
+        self.n_goal_reached = 0
+        self.n_episodes = 0
 
     def step_wait(self):
         obs, rews, dones, goals_reached = self.venv.step_wait()

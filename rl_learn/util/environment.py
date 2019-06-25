@@ -185,6 +185,10 @@ class GymEnvironment(object):
         return self.env.reward_range
 
     @property
+    def metadata(self):
+        return self.metadata
+
+    @property
     def state(self):
         return self.screen, self.reward, self.terminal
 

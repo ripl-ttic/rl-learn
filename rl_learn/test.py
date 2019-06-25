@@ -31,7 +31,7 @@ def make_env_(
     return Monitor(env, logger.get_dir() and os.path.join(logger.get_dir(), str(rank)))
 
 def make_env__():
-    return gym.Make('Breakout-v0')
+    return gym.Make('MontezumaRevenge-v0')
 
 env = _make_env(make_env__, 2)
 obs = env.reset()

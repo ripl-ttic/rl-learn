@@ -70,7 +70,7 @@ class GymEnvironment(object):
         self.expt_id = expt_id
         self.descr_id = descr_id
         self.lang_enc = lang_enc
-        self.device = torch.device("cuda:0" if self.gpu and torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda:0" if gpu and torch.cuda.is_available() else "cpu")
         self.mode = mode
         self.lang_coeff = lang_coeff
         self.noise = noise

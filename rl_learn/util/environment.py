@@ -1,4 +1,5 @@
 import gym
+from gym import spaces
 import os, sys, random
 import numpy as np
 from scipy.misc import imresize
@@ -17,8 +18,17 @@ from rl_learn.util.utils1 import *
 
 
 @gin.configurable
-def make_env(expt_id, descr_id, model_dir, lang_coeff, noise, gamma, rank=0):
-    env = GymEnvironment(expt_id, descr_id, model_dir, lang_coeff, noise, gamma)
+def make_env(
+    expt_id, 
+    descr_id, 
+    gamma,
+    lang_enc,
+    mode='paper',
+    lang_coeff=0., 
+    noise=0., 
+    rank=0
+):
+    env = GymEnvironment(expt_id, descr_id, lang_enc, gamma, mode, lang_coeff, noise)
     return Monitor(env, logger.get_dir() and os.path.join(logger.get_dir(), str(rank)))
 
 
@@ -26,14 +36,16 @@ class GymEnvironment(object):
     def __init__(self, 
         expt_id,
         descr_id,
-        model_dir,
+        gamma,
+        mode,
+        lang_enc,
         lang_coeff,
-        noise,
-        gamma
+        noise
     ):
         self.expt_id = expt_id
         self.descr_id = descr_id
-        self.model_dir = model_dir
+        self.lang_enc = lang_enc
+        self.mode = mode
         self.lang_coeff = lang_coeff
         self.noise = noise
         self.env = gym.make(ENV_NAME)
@@ -158,7 +170,10 @@ class GymEnvironment(object):
 
     @property
     def screen(self):
-        return imresize(rgb2gray(self._screen)/255., self.dims)
+        if self.mode == 'paper':
+            return imresize(rgb2gray(self._screen)/255., self.dims)
+        elif self.mode == 'raw':
+            return self._screen
 
     @property
     def action_size(self):
@@ -170,7 +185,10 @@ class GymEnvironment(object):
 
     @property
     def observation_space(self):
-        return self.env.observation_space
+        if self.mode == 'paper':
+            spaces.Box(low=0.0, high=1.0, shape=self.dims)
+        elif self.mode == 'raw'
+            return self.env.observation_space
 
     @property
     def action_space(self):

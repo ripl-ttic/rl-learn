@@ -3,6 +3,9 @@ from dl.util import VecMonitor
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
+import gym
+
+
 def _make_env(env_fn, nenv):
     def _env(rank):
         def _thunk():

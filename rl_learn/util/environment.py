@@ -51,6 +51,8 @@ class GymEnvironment(object):
         self.env = gym.make(ENV_NAME)
 
         self.dims = (SCREEN_WIDTH, SCREEN_HEIGHT)
+        if self.mode == 'paper':
+            self.obs_shape = spaces.Box(low=0.0, high=1.0, shape=self.dims)
 
         self._screen = None
         self.reward = 0
@@ -186,7 +188,7 @@ class GymEnvironment(object):
     @property
     def observation_space(self):
         if self.mode == 'paper':
-            return spaces.Box(low=0.0, high=1.0, shape=self.dims)
+            return self.obs_shape
         elif self.mode == 'raw':
             return self.env.observation_space
 

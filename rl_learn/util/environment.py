@@ -36,7 +36,7 @@ class SubprocVecEnvInfos(SubprocVecEnv):
 
 class DummyVecEnvInfos(DummyVecEnv):
     def __init__(self, *args, **kwargs):
-        super().__init(*args, **kwargs)
+        super(DummyVecEnv).__init(*args, **kwargs)
         self.n_episodes = 0
         self.n_goals_reached = 0
 

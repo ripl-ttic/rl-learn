@@ -293,8 +293,6 @@ class GymEnvironment(object):
         if self.n_steps < 2:
             logits = None
         else:
-            print(self.action_vector)
-            print(self.lang)
             s = np.sum(self.action_vector)
             action_list = np.array(self.action_vector)
             if s > 0:
@@ -304,7 +302,7 @@ class GymEnvironment(object):
             action_list = torch.from_numpy(action_list).float().to(self.device)
             lang_list = torch.from_numpy(lang_list).float().to(self.device)
             length_list = torch.from_numpy(length_list).long().to(self.device)
-            print(self.action_list)
+            print(action_list)
             logits = self.net(action_list, lang_list, length_list).cpu().detach().numpy()
             print(logits)
 

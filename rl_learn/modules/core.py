@@ -35,6 +35,7 @@ class MLP(nn.Module):
             with torch.no_grad():
                 m = torch.mean(x, 0)
                 v = torch.var(x, 0)
+            print(x)
             x = F.batch_norm(x, m, v, training=self.training)
         
         return self.linears[-1](x)

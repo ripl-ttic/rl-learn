@@ -13,7 +13,8 @@ import pickle
 import torch
 # sys.path.insert(0, 'learn/')
 # from learn_model import LearnModel
-from tasks import *
+
+from rl.util.tasks import *
 
 class GymEnvironment(object):
     def __init__(self, 

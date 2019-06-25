@@ -2,7 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+import gin
 
+
+@gin.configurable
 class MLP(nn.Module):
     def __init__(self, enc_size, output_size, dropout=1., n_layers=3, hidden_size=128):
         super(MLP, self).__init__()

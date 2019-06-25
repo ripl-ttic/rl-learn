@@ -11,14 +11,14 @@ import torch.optim as optim
 from rl_learn.modules import LEARN
 from rl_learn.util import Data, get_batch_lang_lengths
 
-@gin.configurable(blacklist=['logdir'])
+@gin.configurable(blacklist=['logdir', 'lang_enc'])
 class RunLearn(object):
     def __init__(self,
         logdir,
+        lang_enc,
         actions_file,
         data_file,
         lr=0.0001,
-        lang_enc='onehot',
         vocab_size=296,
         n_actions=18,
         epochs=50,

@@ -87,6 +87,7 @@ class RunLearn(object):
                     break
                 self.step()
                 if self.acc_val > self.best_val_acc:
+                    self.best_val_acc = self.acc_val
                     self.save()
         except KeyboardInterrupt:
             logger.log("Caught Ctrl-C. Saving model and exiting...")

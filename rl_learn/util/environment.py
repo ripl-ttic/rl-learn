@@ -293,7 +293,8 @@ class GymEnvironment(object):
         if self.n_steps < 2:
             logits = None
         else:
-            
+            print(self.action_vector)
+            print(self.lang)
             s = np.sum(self.action_vector)
             action_list = np.array(self.action_vector)
             if s > 0:

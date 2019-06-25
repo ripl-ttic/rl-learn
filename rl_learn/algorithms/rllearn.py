@@ -43,10 +43,15 @@ class RLLEARN(PPO):
 
         logger.logkv('mean episode length', np.mean(self.env.episode_lengths))
         logger.logkv('mean episode reward', np.mean(self.env.episode_rewards))
-        logger.logkv('Success rate', float(self.env.n_goals_reached / self.env.n_episodes))
+        
+        if self.env.n_episodes > 0:
+            sucess_rate = float(self.env.n_goals_reached / self.env.n_episodes)
+        else:
+            success_rate = 0
         vmax = torch.max(self.rollout.data['vpred']).cpu().numpy()
         vmean = torch.mean(self.rollout.data['vpred']).cpu().numpy()
         logger.add_scalar('alg/v_max', vmax, self.t, time.time())
         logger.add_scalar('alg/v_mean', vmean, self.t, time.time())
-        logger.logkv('alg/success', float(self.env.n_goals_reached / self.env.n_episodes), self.t, time.time())
+        logger.logkv('Success rate', success_rate)
+        logger.add_scalar('alg/success', success_rate, self.t, time.time())
         logger.dumpkvs()

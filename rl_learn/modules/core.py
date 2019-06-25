@@ -9,7 +9,7 @@ import gin
 class MLP(nn.Module):
     def __init__(self, enc_size, output_size, dropout=1., n_hidden=2, hidden_size=128):
         super(MLP, self).__init__()
-        self.n_layers = n_layers
+        self.n_hidden = n_hidden
         in_sizes = [enc_size] + [hidden_size] * n_hidden
         out_sizes = [hidden_size] * n_hidden + [output_size]
         self.linears = []

@@ -12,7 +12,7 @@ def _make_env(env_fn, nenv):
         env = SubprocVecEnv([_env(i) for i in range(nenv)])
     else:
         env = DummyVecEnv([_env(0)])
-    env = SuccessWrapper(env)
+    # env = SuccessWrapper(env)
     tstart = 0
     return VecMonitor(env, max_history=100, tstart=tstart, tbX=True)
 

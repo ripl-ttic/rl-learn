@@ -14,8 +14,8 @@ import torch
 # sys.path.insert(0, 'learn/')
 # from learn_model import LearnModel
 
-from rl.util.tasks import *
-from utils1 import *
+from rl_learn.util.tasks import *
+from rl_lear.util.utils1 import *
 
 class GymEnvironment(object):
     def __init__(self, 

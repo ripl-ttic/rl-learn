@@ -40,19 +40,21 @@ class LEARN(nn.Module):
             langs = langs.long()
             langs = self.emb(langs)
 
-        print(langs)
-        print(langs.shape)
-        print("")
+        # print(langs)
+        # print(langs.shape)
+        # print("")
 
         if self.lang_enc == "infersent":
             text_out = self.infersent(langs)
         else:
             packed_langs = pack_padded_sequence(langs, lengths.cpu().numpy(), batch_first=True, enforce_sorted=False)
-            print(packed_langs)
+            # print(packed_langs)
             packed_langs = packed_langs.float()
             packed_out, (_,_) = self.gru(packed_langs)
             text_out, _ = pad_packed_sequence(packed_out, batch_first=True)
             text_out = torch.mean(text_out, 1)
+            print(text_out)
+            print(text_out.shape)
 
         out = torch.cat((text_out, ac_out), 1)
 

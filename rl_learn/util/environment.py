@@ -15,7 +15,7 @@ import torch
 # from learn_model import LearnModel
 
 from rl_learn.util.tasks import *
-from rl_lear.util.utils1 import *
+from rl_learn.util.utils1 import *
 
 class GymEnvironment(object):
     def __init__(self, 

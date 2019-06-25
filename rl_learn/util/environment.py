@@ -4,7 +4,7 @@ import random
 import numpy as np
 from scipy.misc import imresize
 
-from PIL import Ima
+from PIL import Image
 import tensorflow as tf
 import pickle
 import torch

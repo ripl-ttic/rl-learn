@@ -1,5 +1,9 @@
 import gym
 from gym import spaces
+from gym.core import Wrapper
+from baselines.common.vec_env.vec_env import VecEnvWrapper
+
+
 import os, sys, random
 import numpy as np
 from scipy.misc import imresize
@@ -15,44 +19,19 @@ from dl.util import Monitor, logger, Checkpointer
 from rl_learn.util.tasks import *
 from rl_learn.util import get_batch_lang_lengths, rgb2gray
 
-from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
-from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
-
-class SubprocVecEnvInfos(SubprocVecEnv):
-    def __init__(self, env_fns):
-        super().__init__(env_fns)
-        self.n_episodes = 0
-        self.n_goals_reached = 0
+class SuccessWrapper(VecEnvWrapper):
+    def __init__(self, venv):
+        super().init(venv)
+        self.n_goal_reached
+        self.n_episodes
 
     def step_wait(self):
-        self._assert_not_closed()
-        results = [remote.recv() for remote in self.remotes]
-        self.waiting = False
-        obs, rews, dones, infos = zip(*results)
-        self.n_episodes += np.sum(np.stack(dones))
-        self.n_goals_reached += np.sum(np.stack(infos)) 
-        return _flatten_obs(obs), np.stack(rews), np.stack(dones), np.stack(infos)
+        obs, rews, dones, goals_reached = self.venv.step_wait()
+        self.n_goal_reached += np.sum(np.stack(goals_reached))
+        self.n_episodes += np.sum(dones)
+        return obs, rews, dones, goals_reached
 
-class DummyVecEnvInfos(DummyVecEnv):
-    def __init__(self, env_fns):
-        super(DummyVecEnv, self).__init__(env_fns)
-        self.n_episodes = 0
-        self.n_goals_reached = 0
-
-    def step_wait(self):
-        for e in range(self.num_envs):
-            action = self.actions[e]
-
-            obs, self.buf_rews[e], self.buf_dones[e], self.buf_infos[e] = self.envs[e].step(action)
-            if self.buf_dones[e]:
-                self.n_episodes += 1
-                if self.buf_infos[e]:
-                    self.n_goals_reached += 1
-                obs = self.envs[e].reset()
-            self._save_obs(e, obs)
-        return (self._obs_from_buf(), np.copy(self.buf_rews), np.copy(self.buf_dones),
-            self.buf_infos.copy())
 
 @gin.configurable
 def make_env(

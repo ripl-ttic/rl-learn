@@ -1,5 +1,7 @@
-from rl_learn.util.environment import *
+from rl.util.environment import *
 from dl.util import VecMonitor
+from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
+from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
 def _make_env(env_fn, nenv):
     def _env(rank):
@@ -7,9 +9,10 @@ def _make_env(env_fn, nenv):
             return env_fn(rank=rank)
         return _thunk
     if nenv > 1:
-        env = SubprocVecEnvInfos([_env(i) for i in range(nenv)])
+        env = SubprocVecEnv([_env(i) for i in range(nenv)])
     else:
-        env = DummyVecEnvInfos([_env(0)])
+        env = DummyVecEnv([_env(0)])
+    env = SuccessWrapper(env)
     tstart = max(self.ckptr.ckpts()) if len(self.ckptr.ckpts()) > 0 else 0
     return VecMonitor(env, max_history=100, tstart=tstart, tbX=True)
 
@@ -30,4 +33,4 @@ def make_env_(
 env = _make_env(make_env_, 1)
 obs = env.reset()
 print(obs)
-print(env.step(1))
+print

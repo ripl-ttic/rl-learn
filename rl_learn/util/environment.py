@@ -285,6 +285,7 @@ class GymEnvironment(object):
         self.net = LEARN(self.vocab_size, self.n_actions, self.lang_enc)
         self.net.load_state_dict(save_dict['net'])
         self.net.to(self.device)
+        self.net.train(False)
         sentence_id = (self.expt_id-1) * 3 + (self.descr_id-1)
         lang_data = pickle.load(open('data/test_lang_data.pkl', 'rb'), encoding='bytes')
         self.lang = lang_data[sentence_id][self.lang_enc]

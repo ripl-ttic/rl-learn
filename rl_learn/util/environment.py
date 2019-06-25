@@ -30,7 +30,7 @@ class SuccessWrapper(VecEnvWrapper):
 
     def step_wait(self):
         obs, rews, dones, goals_reached = self.venv.step_wait()
-        self.n_goal_reached += np.sum(np.stack(goals_reached))
+        self.n_goals_reached += np.sum(np.stack(goals_reached))
         self.n_episodes += np.sum(dones)
         return obs, rews, dones, goals_reached
 

@@ -23,6 +23,7 @@ class MLP(nn.Module):
         self.dropout = nn.Dropout(p=1-dropout)
 
         self.linears = nn.ModuleList(self.linears)
+        self.batch_norms = nn.ModuleList(self.batch_norms)
 
         self.reset_parameters()
 

@@ -28,6 +28,7 @@ class MLP(nn.Module):
             linear.bias.data.fill_(0.1)
     
     def forward(self, x):
+        print(self.training)
         for l in range(self.n_layers - 1):
             x = self.linears[l](x)
             x = F.relu(x)

@@ -304,7 +304,8 @@ class GymEnvironment(object):
             lang_list = torch.from_numpy(lang_list).float().to(self.device)
             length_list = torch.from_numpy(length_list).long().to(self.device)
             print(action_list)
-            logits = self.net(action_list, lang_list, length_list).cpu().detach().numpy()
+            with torch.no_grad():
+                logits = self.net(action_list, lang_list, length_list).cpu().detach().numpy()
             print(logits)
 
         if logits is None:

@@ -186,7 +186,7 @@ class GymEnvironment(object):
 
     @property
     def metadata(self):
-        return self.metadata
+        return self.env.metadata
 
     @property
     def state(self):

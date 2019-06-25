@@ -3,7 +3,7 @@ import sys
 import random
 import numpy as np
 from scipy.misc import imresize
-from utils import *
+
 from PIL import Image
 # from copy import deepcopy
 import tensorflow as tf
@@ -15,6 +15,7 @@ import torch
 # from learn_model import LearnModel
 
 from rl.util.tasks import *
+from utils1 import *
 
 class GymEnvironment(object):
     def __init__(self, 

@@ -58,6 +58,7 @@ class RunLearn(object):
         self.epoch = state_dict['epoch']
 
     def save(self):
+        print("saving epoch {}".format(self.epoch))
         self.ckptr.save(self.state_dict(), self.epoch)
 
     def load(self, epoch=None):
@@ -89,8 +90,8 @@ class RunLearn(object):
                     self.save()
         except KeyboardInterrupt:
             logger.log("Caught Ctrl-C. Saving model and exiting...")
-        if self.epoch not in self.ckptr.ckpts():
-            self.save()
+        # if self.epoch not in self.ckptr.ckpts():
+        #     self.save()
 
         logger.export_scalars(self.ckptr.format.format(self.epoch) + '.json')
         logger.reset()

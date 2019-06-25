@@ -5,19 +5,30 @@ import numpy as np
 from scipy.misc import imresize
 from utils import *
 from PIL import Image
-from copy import deepcopy
+# from copy import deepcopy
 import tensorflow as tf
-from itertools import groupby
-import pdb
+# from itertools import groupby
+# import pdb
 import pickle
 import torch
-sys.path.insert(0, 'learn/')
-from learn_model import LearnModel
+# sys.path.insert(0, 'learn/')
+# from learn_model import LearnModel
 from tasks import *
 
 class GymEnvironment(object):
-    def __init__(self, args, gamma):
-        self.args = args
+    def __init__(self, 
+        expt_id,
+        descr_id,
+        model_dir,
+        lang_coeff,
+        noise,
+        gamma
+    ):
+        self.expt_id = expt_id
+        self.descr_id = descr_id
+        self.model_dir = model_dir
+        self.lang_coeff = lang_coeff
+        self.noise = noise
         self.env = gym.make(ENV_NAME)
 
         self.dims = (SCREEN_WIDTH, SCREEN_HEIGHT)
@@ -26,16 +37,16 @@ class GymEnvironment(object):
         self.reward = 0
         self.terminal = True
 
-        self.reset()
-        if self.args.lang_coeff > 0:
-            self.setup_language_network()
+        self._reset()
+        if self.lang_coeff > 0:
+            # self.setup_language_network()
             self.gamma = gamma
 
             # aggregates to compute Spearman correlation coefficients
             self.action_vectors_list = []
             self.rewards_list = []
 
-    def reset(self):
+    def _reset(self):
         self.n_steps = 0
         self.action_vector = np.zeros(N_ACTIONS)
         self.potentials_list = []
@@ -89,36 +100,36 @@ class GymEnvironment(object):
         if self.n_steps > 100:
             input('Done')
 
-    def new_expt(self):
-        if self.args.expt_id == 1:
+    def reset(self):
+        if self.expt_id == 1:
             self.task = Task1(self)
-        elif self.args.expt_id == 2:
+        elif self.expt_id == 2:
             self.task = Task2(self)
-        elif self.args.expt_id == 3:
+        elif self.expt_id == 3:
             self.task = Task3(self)
-        elif self.args.expt_id == 4:
+        elif self.expt_id == 4:
             self.task = Task4(self)
-        elif self.args.expt_id == 5:
+        elif self.expt_id == 5:
             self.task = Task5(self)
-        elif self.args.expt_id == 6:
+        elif self.expt_id == 6:
             self.task = Task6(self)
-        elif self.args.expt_id == 7:
+        elif self.expt_id == 7:
             self.task = Task7(self)
-        elif self.args.expt_id == 8:
+        elif self.expt_id == 8:
             self.task = Task8(self)
-        elif self.args.expt_id == 9:
+        elif self.expt_id == 9:
             self.task = Task9(self)
-        elif self.args.expt_id == 10:
+        elif self.expt_id == 10:
             self.task = Task10(self)
-        elif self.args.expt_id == 11:
+        elif self.expt_id == 11:
             self.task = Task11(self)
-        elif self.args.expt_id == 12:
+        elif self.expt_id == 12:
             self.task = Task12(self)
-        elif self.args.expt_id == 13:
+        elif self.expt_id == 13:
             self.task = Task13(self)
-        elif self.args.expt_id == 14:
+        elif self.expt_id == 14:
             self.task = Task14(self)
-        elif self.args.expt_id == 15:
+        elif self.expt_id == 15:
             self.task = Task15(self)
             
         self._step(0)
@@ -128,7 +139,7 @@ class GymEnvironment(object):
         for _ in range(random.randint(0, RANDOM_START - 1)):
             self._step(0)
 
-        return self.screen, 0, 0, self.terminal
+        return self.screen
 
     def _step(self, action):
         self._screen, self.reward, self.terminal, _ = self.env.step(action)
@@ -138,7 +149,7 @@ class GymEnvironment(object):
         action = self.env.action_space.sample()
         self._step(action)
 
-    @ property
+    @property
     def screen(self):
         return imresize(rgb2gray(self._screen)/255., self.dims)
 
@@ -158,7 +169,7 @@ class GymEnvironment(object):
     def state(self):
         return self.screen, self.reward, self.terminal
 
-    def act(self, action):
+    def step(self, action):
         start_lives = self.lives
         self.terminal = False
         self.action_vector[action] += 1.
@@ -179,24 +190,26 @@ class GymEnvironment(object):
         else:
             self.reward = 0.0
 
-        if self.args.lang_coeff > 0.0:
-            lang_reward = self.args.lang_coeff * self.compute_language_reward()
-            self.reward += lang_reward
+        if self.lang_coeff > 0.0:
+            # lang_reward = self.args.lang_coeff * self.compute_language_reward()
+            # self.reward += lang_reward
+            pass 
         if self.n_steps > MAX_STEPS:
             self.terminal = True
         
         if self.terminal:
-            self.reset()
+            self._reset()
 
-        return self.state, goal_reached
+        obs, ac, rew = self.state
+        return obs, ac, rew, goal_reached
 
     def setup_language_network(self):
         self.lang_net_graph = tf.Graph()
         with self.lang_net_graph.as_default():
-            self.lang_network = LearnModel('predict', None, self.args.model_dir)
-        sentence_id = (self.args.expt_id-1) * 3 + (self.args.descr_id-1)
+            self.lang_network = LearnModel('predict', None, self.model_dir)
+        sentence_id = (self.expt_id-1) * 3 + (self.descr_id-1)
         lang_data = pickle.load(open('./data/test_lang_data.pkl', 'rb'), encoding='bytes')
-        self.lang = lang_data[sentence_id][self.args.lang_enc]
+        self.lang = lang_data[sentence_id][self.lang_enc]
 
     def compute_language_reward(self):
         if self.n_steps < 2:
@@ -209,7 +222,7 @@ class GymEnvironment(object):
             self.potentials_list.append(0.)
         else:
             e_x = np.exp(logits - np.max(logits))
-            self.potentials_list.append(e_x[1] - e_x[0] + self.args.noise * np.random.normal())
+            self.potentials_list.append(e_x[1] - e_x[0] + self.noise * np.random.normal())
 
         self.action_vectors_list.append(list(self.action_vector[k] for k in spearman_corr_coeff_actions))
         self.rewards_list.append(self.potentials_list[-1])

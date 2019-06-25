@@ -40,6 +40,10 @@ class LEARN(nn.Module):
             langs = langs.long()
             langs = self.emb(langs)
 
+        print(langs)
+        print(langs.shape)
+        print("")
+
         if self.lang_enc == "infersent":
             text_out = self.infersent(langs)
         else:

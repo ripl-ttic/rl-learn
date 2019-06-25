@@ -281,9 +281,11 @@ class GymEnvironment(object):
         self.net = Policy(self.observation_space.shape, self.env.action_space, norm_observations=True)
         self.net.load_state_dict(save_dict['net'])
         self.net.to(self.device)
+        print(self.net)
         sentence_id = (self.expt_id-1) * 3 + (self.descr_id-1)
         lang_data = pickle.load(open('data/test_lang_data.pkl', 'rb'), encoding='bytes')
         self.lang = lang_data[sentence_id][self.lang_enc]
+        print(self.lang)
 
     def compute_language_reward(self):
         if self.n_steps < 2:

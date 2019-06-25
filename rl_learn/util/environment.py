@@ -13,6 +13,7 @@ import pickle
 import torch
 
 import gin
+from dl.modules import Policy
 from dl.util import Monitor, logger, Checkpointer
 
 from rl_learn.util.tasks import *

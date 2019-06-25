@@ -10,12 +10,49 @@ import pickle
 import torch
 
 import gin
-from dl.util import Monitor
-from dl.util import logger
+from dl.util import Monitor, logger, Checkpointer
 
 from rl_learn.util.tasks import *
-from rl_learn.util.utils1 import *
+from rl_learn.util import get_batch_lang_lengths, rgb2gray
 
+from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
+from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
+
+
+class SubprocVecEnvInfos(SubprocVecEnv):
+    def __init__(self, *args, **kwargs):
+        super().__init((*args, **kwargs))
+        self.n_episodes = 0
+        self.n_goals_reached = 0
+
+    def step_wait(self):
+        self._assert_not_closed()
+        results = [remote.recv() for remote in self.remotes]
+        self.waiting = False
+        obs, rews, dones, infos = zip(*results)
+        self.n_episodes += np.sum(np.stack(dones))
+        self.n_goals_reached += np.sum(np.stack(infos)) 
+        return _flatten_obs(obs), np.stack(rews), np.stack(dones), np.stack(infos)
+
+class DummyVecEnvInfos(DummyVecEnv):
+    def __init__(self, *args, **kwargs):
+        super().__init((*args, **kwargs))
+        self.n_episodes = 0
+        self.n_goals_reached = 0
+
+    def step_wait(self):
+        for e in range(self.num_envs):
+            action = self.actions[e]
+
+            obs, self.buf_rews[e], self.buf_dones[e], self.buf_infos[e] = self.envs[e].step(action)
+            if self.buf_dones[e]:
+                self.n_episodes += 1
+                if self.buf_infos[e]:
+                    self.n_goals_reached += 1
+                obs = self.envs[e].reset()
+            self._save_obs(e, obs)
+        return (self._obs_from_buf(), np.copy(self.buf_rews), np.copy(self.buf_dones),
+            self.buf_infos.copy())
 
 @gin.configurable
 def make_env(
@@ -24,33 +61,46 @@ def make_env(
     gamma,
     lang_enc,
     mode='paper',
+    gpu=True,
     lang_coeff=0., 
     noise=0., 
     rank=0
 ):
-    env = GymEnvironment(expt_id, descr_id, gamma, lang_enc, mode, lang_coeff, noise)
+    env = GymEnvironment(expt_id, descr_id, gamma, lang_enc, gpu, mode, lang_coeff, noise)
     return Monitor(env, logger.get_dir() and os.path.join(logger.get_dir(), str(rank)))
 
 
+@gin.configurable
 class GymEnvironment(object):
     def __init__(self, 
         expt_id,
         descr_id,
         gamma,
         lang_enc,
+        gpu,
         mode,
         lang_coeff,
-        noise
+        noise,
+        env_id='MontezumaRevenge-v0',
+        screen_width=84,
+        screen_height=84,
+        n_actions=18,
+        random_start=30,
+        max_steps=1000
     ):
         self.expt_id = expt_id
         self.descr_id = descr_id
         self.lang_enc = lang_enc
+        self.device = torch.device("cuda:0" if self.gpu and torch.cuda.is_available() else "cpu")
         self.mode = mode
         self.lang_coeff = lang_coeff
         self.noise = noise
-        self.env = gym.make(ENV_NAME)
+        self.env = gym.make(env_id)
 
-        self.dims = (SCREEN_WIDTH, SCREEN_HEIGHT)
+        self.n_actions = n_actions
+        self.random_start = random_start
+        self.dims = (screen_width, screen_height)
+        self.max_steps = max_steps
 
         self._screen = None
         self.reward = 0
@@ -58,7 +108,7 @@ class GymEnvironment(object):
 
         self._reset()
         if self.lang_coeff > 0:
-            # self.setup_language_network()
+            self.setup_language_network()
             self.gamma = gamma
 
             # aggregates to compute Spearman correlation coefficients
@@ -67,7 +117,7 @@ class GymEnvironment(object):
 
     def _reset(self):
         self.n_steps = 0
-        self.action_vector = np.zeros(N_ACTIONS)
+        self.action_vector = np.zeros(self.n_actions)
         self.potentials_list = []
 
     def new_game(self, from_random_game=False):
@@ -78,7 +128,7 @@ class GymEnvironment(object):
 
     def new_random_game(self):
         self.new_game(True)
-        for _ in xrange(random.randint(0, RANDOM_START - 1)):
+        for _ in xrange(random.randint(0, self.random_state - 1)):
             self._step(0)
         return self.screen, 0, 0, self.terminal
 
@@ -155,7 +205,7 @@ class GymEnvironment(object):
         self._step(0)
         self._step(0)
         self._step(0)
-        for _ in range(random.randint(0, RANDOM_START - 1)):
+        for _ in range(random.randint(0, self.random_start - 1)):
             self._step(0)
 
         return self.screen
@@ -235,7 +285,7 @@ class GymEnvironment(object):
             # lang_reward = self.args.lang_coeff * self.compute_language_reward()
             # self.reward += lang_reward
             pass 
-        if self.n_steps > MAX_STEPS:
+        if self.n_steps > self.max_steps:
             self.terminal = True
         
         if self.terminal:
@@ -245,19 +295,30 @@ class GymEnvironment(object):
         return obs, ac, rew, goal_reached
 
     def setup_language_network(self):
-        self.lang_net_graph = tf.Graph()
-        with self.lang_net_graph.as_default():
-            self.lang_network = LearnModel('predict', None, self.model_dir)
+        ckptr = Checkpointer('train/logs/learn/' + self.lang_enc + '/ckpts')
+        save_dict = ckptr.load()
+        self.net = Policy(self.observation_space.shape, self.env.action_space, norm_observations=True)
+        self.net.load_state_dict(save_dict['net'])
+        self.net.to(self.device)
         sentence_id = (self.expt_id-1) * 3 + (self.descr_id-1)
-        lang_data = pickle.load(open('./data/test_lang_data.pkl', 'rb'), encoding='bytes')
+        lang_data = pickle.load(open('data/test_lang_data.pkl', 'rb'), encoding='bytes')
         self.lang = lang_data[sentence_id][self.lang_enc]
 
     def compute_language_reward(self):
         if self.n_steps < 2:
             logits = None
         else:
-            with self.lang_net_graph.as_default():
-                logits = self.lang_network.predict([self.action_vector], [self.lang])[0]
+            s = np.sum(self.action_vector)
+            action_list = np.array(self.action_vector)
+            if s > 0:
+                action_list /= s
+            lang_list, length_list = get_batch_lang_lengths(self.lang)
+            
+            action_list = torch.from_numpy(action_list).float().to(self.device)
+            lang_list = torch.from_numpy(lang_list).float().to(self.device)
+            length_list = torch.from_numpy(length_list).long().to(self.device)
+
+            logits = self.net(action_list, lang_list, length_list).cpu().detach().numpy()
 
         if logits is None:
             self.potentials_list.append(0.)
@@ -265,12 +326,11 @@ class GymEnvironment(object):
             e_x = np.exp(logits - np.max(logits))
             self.potentials_list.append(e_x[1] - e_x[0] + self.noise * np.random.normal())
 
-        self.action_vectors_list.append(list(self.action_vector[k] for k in spearman_corr_coeff_actions))
+        self.action_vectors_list.append(list(self.action_vector[k] for k in [0, 1, 2, 3, 4, 5, 11, 12]))
         self.rewards_list.append(self.potentials_list[-1])
 
         if len(self.potentials_list) > 1:
-            lang_result = (self.gamma * self.potentials_list[-1] - self.potentials_list[-2])
-            return lang_result
+            return self.gamma * self.potentials_list[-1] - self.potentials_list[-2]
         else:
             return 0.
 

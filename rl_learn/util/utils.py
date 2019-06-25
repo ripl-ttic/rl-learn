@@ -44,3 +44,6 @@ def get_batch_lang_lengths(lang_list, lang_enc):
         return lang_list, []
     else:
         raise NotImplementedError
+
+def rgb2gray(image):
+    return np.dot(image[...,:3], [0.299, 0.587, 0.114])

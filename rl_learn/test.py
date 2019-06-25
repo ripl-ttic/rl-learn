@@ -1,5 +1,6 @@
 from rl_learn.util.environment import *
 from dl.util import VecMonitor
+from dl.modules import Policy
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 

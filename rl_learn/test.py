@@ -1,4 +1,4 @@
-from rl.util.environment import *
+from rl_learn.util.environment import *
 from dl.util import VecMonitor
 
 def _make_env(env_fn, nenv):

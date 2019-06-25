@@ -13,7 +13,7 @@ def _make_env(env_fn, nenv):
     else:
         env = DummyVecEnv([_env(0)])
     env = SuccessWrapper(env)
-    tstart = max(self.ckptr.ckpts()) if len(self.ckptr.ckpts()) > 0 else 0
+    tstart = 0
     return VecMonitor(env, max_history=100, tstart=tstart, tbX=True)
 
 def make_env_(

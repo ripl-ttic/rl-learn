@@ -26,7 +26,7 @@ def make_env_(
     lang_enc="onehot",
     mode='paper',
     gpu=True,
-    lang_coeff=0., 
+    lang_coeff=0.2, 
     noise=0., 
     rank=0
 ):

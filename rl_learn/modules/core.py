@@ -7,14 +7,18 @@ import gin
 
 @gin.configurable
 class MLP(nn.Module):
-    def __init__(self, enc_size, output_size, dropout=1., n_layers=3, hidden_size=128):
+    def __init__(self, enc_size, output_size, dropout=1., n_hidden=2, hidden_size=128):
         super(MLP, self).__init__()
         self.n_layers = n_layers
-        in_sizes = [enc_size] + [hidden_size] * (n_layers - 1)
-        out_sizes = [hidden_size] * (n_layers - 1) + [output_size]
+        in_sizes = [enc_size] + [hidden_size] * n_hidden
+        out_sizes = [hidden_size] * n_hidden + [output_size]
         self.linears = []
-        for l in range(n_layers):
+        for l in range(n_hidden + 1):
             self.linears.append(nn.Linear(in_sizes[l], out_sizes[l]))
+
+        self.batch_norms = []
+        for l in range(n_hidden):
+            self.batch_norms.append(nn.BatchNorm1d(hidden_size))
 
         self.dropout = nn.Dropout(p=1-dropout)
 
@@ -28,14 +32,9 @@ class MLP(nn.Module):
             linear.bias.data.fill_(0.1)
     
     def forward(self, x):
-        print(self.training)
-        for l in range(self.n_layers - 1):
+        for l in range(self.n_hidden):
             x = self.linears[l](x)
             x = F.relu(x)
-            with torch.no_grad():
-                m = torch.mean(x, 0)
-                v = torch.var(x, 0)
-            print(x)
-            x = F.batch_norm(x, m, v, training=self.training)
+            x = self.batch_norms[l](x)
         
         return self.linears[-1](x)

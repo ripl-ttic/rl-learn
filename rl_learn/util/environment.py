@@ -13,9 +13,9 @@ import pickle
 import torch
 
 import gin
-from dl.modules import Policy
 from dl.util import Monitor, logger, Checkpointer
 
+from rl_learn.modules import LEARN
 from rl_learn.util.tasks import *
 from rl_learn.util import get_batch_lang_lengths, rgb2gray
 
@@ -66,6 +66,7 @@ class GymEnvironment(object):
         env_id='MontezumaRevenge-v0',
         screen_width=84,
         screen_height=84,
+        vocab_size=296,
         n_actions=18,
         random_start=30,
         max_steps=1000
@@ -79,6 +80,7 @@ class GymEnvironment(object):
         self.noise = noise
         self.env = gym.make(env_id)
 
+        self.vocab_size = vocab_size
         self.n_actions = n_actions
         self.random_start = random_start
         self.dims = (screen_width, screen_height)
@@ -280,7 +282,7 @@ class GymEnvironment(object):
     def setup_language_network(self):
         ckptr = Checkpointer('train/logs/learn/' + self.lang_enc + '/ckpts')
         save_dict = ckptr.load()
-        self.net = Policy(self.observation_space.shape, self.env.action_space, norm_observations=True)
+        self.net = LEARN(self.vocab_size, self.n_actions, self.lang_enc)
         self.net.load_state_dict(save_dict['net'])
         self.net.to(self.device)
         print(self.net)

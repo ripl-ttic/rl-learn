@@ -4,7 +4,7 @@ class Task(object):
   def __init__(self, env, start):
     self.env = env
     self.env.new_game()
-    self.start = self.env.load_state('./game_state_ckpts/{}.npy'.format(start))
+    self.start = self.env.load_state('util/game_state_ckpts/{}.npy'.format(start))
 
   def finished():
     pass

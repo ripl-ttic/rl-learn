@@ -164,8 +164,16 @@ class GymEnvironment(object):
         return self.env.ale.lives()
 
     @property
+    self observation_space(self):
+        return self.env.observation_space
+
+    @property
     def action_space(self):
         return self.env.action_space
+
+    @property
+    def spec(self):
+        return self.env.spec
 
     @property
     def state(self):
@@ -235,3 +243,8 @@ class GymEnvironment(object):
         else:
             return 0.
 
+    def render(self, mode='human'):
+        self.env.render(mode)
+
+    def close(self):
+        self.env.close()

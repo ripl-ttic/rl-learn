@@ -168,7 +168,7 @@ class GymEnvironment(object):
         return self.env.ale.lives()
 
     @property
-    self observation_space(self):
+    def observation_space(self):
         return self.env.observation_space
 
     @property

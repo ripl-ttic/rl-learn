@@ -30,7 +30,7 @@ def make_env_(
     env = GymEnvironment(expt_id, descr_id, gamma, lang_enc, gpu, mode, lang_coeff, noise)
     return Monitor(env, logger.get_dir() and os.path.join(logger.get_dir(), str(rank)))
 
-env = _make_env(make_env_, 1)
+env = _make_env(make_env_, 2)
 obs = env.reset()
 print(obs)
 print(env.step(3))

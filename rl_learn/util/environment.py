@@ -299,7 +299,7 @@ class GymEnvironment(object):
                 action_list /= s
             lang_list, length_list = get_batch_lang_lengths([self.lang], self.lang_enc)
             
-            action_list = torch.from_numpy(action_list).float().to(self.device)
+            action_list = torch.from_numpy(action_list).float().unsqueeze(0).to(self.device)
             lang_list = torch.from_numpy(lang_list).float().to(self.device)
             length_list = torch.from_numpy(length_list).long().to(self.device)
             print(action_list)

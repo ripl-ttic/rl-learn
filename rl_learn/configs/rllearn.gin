@@ -21,7 +21,7 @@ PPO.epochs_per_iter = 4
 PPO.max_grad_norm = 0.5
 PPO.ent_coef = 0.01
 PPO.vf_coef = 0.5
-PPO.norm_advantages = False
+PPO.norm_advantages = True
 PPO.norm_observations = False
 
 Trainer.maxt = 500000

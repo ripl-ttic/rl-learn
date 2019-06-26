@@ -236,7 +236,7 @@ class GymEnvironment(object):
         if self.terminal:
             self._reset()
 
-        return self.state, self.reward, self.terminal, {'goal reached': goal_reached}
+        return self.screen, self.reward, self.terminal, {'goal reached': goal_reached}
 
     def setup_language_network(self):
         ckptr = Checkpointer('train/logs/learn/' + self.lang_enc + '/ckpts')

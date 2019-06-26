@@ -89,7 +89,7 @@ class RunRLLEARN(PPO):
         logger.logkv('mean episode reward', np.mean(self.env.episode_rewards))
         
         if self.env.n_episodes > 0:
-            sucess_rate = float(self.env.n_goals_reached / self.env.n_episodes)
+            success_rate = float(self.env.n_goals_reached / self.env.n_episodes)
         else:
             success_rate = 0
         vmax = torch.max(self.rollout.data['vpred']).cpu().numpy()

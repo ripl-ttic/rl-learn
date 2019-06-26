@@ -260,7 +260,7 @@ class RunRLLEARN(object):
             't':   self.t,
         }
 
-    def load_state_dict(self):
+    def load_state_dict(self, state_dict):
         self.net.load_state_dict(state_dict['net'])
         self.opt.load_state_dict(state_dict['opt'])
         self.t = state_dict['t']

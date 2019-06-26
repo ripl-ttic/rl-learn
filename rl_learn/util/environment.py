@@ -205,10 +205,6 @@ class GymEnvironment(object):
     def metadata(self):
         return self.env.metadata
 
-    @property
-    def state(self):
-        return self.screen, self.reward, self.terminal
-
     def step(self, action):
         start_lives = self.lives
         self.terminal = False
@@ -240,8 +236,7 @@ class GymEnvironment(object):
         if self.terminal:
             self._reset()
 
-        obs, ac, rew = self.state
-        return obs, ac, rew, {'goal reached': goal_reached}
+        return self.state, self.reward, self.terminal, {'goal reached': goal_reached}
 
     def setup_language_network(self):
         ckptr = Checkpointer('train/logs/learn/' + self.lang_enc + '/ckpts')

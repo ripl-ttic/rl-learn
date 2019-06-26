@@ -245,11 +245,11 @@ class RunRLLEARN(object):
 
             self.log_losses()
 
-        num_updates = self.ppo_epoch * self.batch_size
+        num_up = self.ppo_epoch * self.batch_size
 
-        value_loss_epoch /= num_updates
-        action_loss_epoch /= num_updates
-        dist_entropy_epoch /= num_updates
+        value_loss_epoch /= num_up
+        action_loss_epoch /= num_up
+        dist_entropy_epoch /= num_up
 
         return value_loss_epoch, action_loss_epoch, dist_entropy_epoch
 

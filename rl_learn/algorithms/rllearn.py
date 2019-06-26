@@ -3,6 +3,7 @@ from dl.algorithms import PPO
 from dl.util import logger, VecMonitor
 
 import torch
+import torch.nn as nn
 
 from rl_learn.util import SuccessWrapper
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv

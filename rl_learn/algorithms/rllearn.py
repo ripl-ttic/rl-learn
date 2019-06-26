@@ -159,7 +159,7 @@ class RunRLLEARN(object):
                 if done:
                     self.n_episodes += 1
                     self.env.reset()                
-                    if info['goal_reached']:
+                    if info['goal reached']:
                         self.n_goal_reached += 1
 
                 self.t += self.num_processes

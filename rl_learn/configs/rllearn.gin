@@ -8,7 +8,6 @@ optim.Adam.betas = (0.9, 0.999)
 optim.Adam.eps = 0.00001
 
 RunRLLEARN.use_gae = False
-RunRLLEARN.log_period = 1000
 
 PPO.env_fn = @make_env_
 PPO.nenv = 1

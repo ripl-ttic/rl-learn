@@ -1,3 +1,5 @@
+import gin
+
 def load_gin_configs(gin_files, gin_bindings=[]):
     """Loads gin configuration files.
     Args:

@@ -16,9 +16,6 @@ from rl_learn.modules import LEARN
 from rl_learn.util.tasks import *
 from rl_learn.util import get_batch_lang_lengths, rgb2gray
 
-random.seed(a=17)
-np.random.seed(17)
-
 class GymEnvironment(object):
     def __init__(self, 
         expt_id,
@@ -44,7 +41,6 @@ class GymEnvironment(object):
         self.lang_coeff = lang_coeff
         self.noise = noise
         self.env = gym.make(env_id)
-        self.env.seed(0)
 
         self.vocab_size = vocab_size
         self.random_start = random_start
@@ -57,6 +53,7 @@ class GymEnvironment(object):
 
         self._reset()
         if self.lang_coeff > 0:
+            print("setting up language network")
             self.setup_language_network()
             self.gamma = gamma
 
@@ -216,6 +213,7 @@ class GymEnvironment(object):
             self.reward = 0.0
 
         if self.lang_coeff > 0.0:
+            print("computing language rewards")
             lang_reward = self.lang_coeff * self.compute_language_reward()
             self.reward += lang_reward
         if self.n_steps > self.max_steps:

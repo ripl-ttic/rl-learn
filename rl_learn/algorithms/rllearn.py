@@ -5,6 +5,7 @@ from dl.util import logger, VecMonitor
 import torch
 import torch.nn as nn
 import numpy as np
+import time
 
 from rl_learn.util import SuccessWrapper
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv

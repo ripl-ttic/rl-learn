@@ -33,7 +33,8 @@ class SuccessWrapper(VecEnvWrapper):
         obs, rews, dones, goals_reached = self.venv.step_wait()
         self.n_goals_reached += np.sum(np.stack(goals_reached))
         self.n_episodes += np.sum(dones)
-        return obs, rews, dones, goals_reached
+        infos = {'goals_reached': goals_reached}
+        return obs, rews, dones, infos
 
 
 @gin.configurable

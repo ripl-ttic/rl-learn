@@ -3,7 +3,7 @@ from rl_learn.algorithms import RunRLLEARN
 import argparse, os
 
 if __name__=='__main__':
-    parser = argparse.ArgumentParser(description='Train RLLEARN.')
+    parser = argparse.ArgumentParser(description='Train RL LEARN.')
     parser.add_argument('logdir', type=str, help='logdir')
     parser.add_argument('-c', '--gin_config', type=str, help='gin config')
     parser.add_argument('-b', '--gin_bindings', nargs='+', help='gin bindings to overwrite config')

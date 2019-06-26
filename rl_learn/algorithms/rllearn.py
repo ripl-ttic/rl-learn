@@ -183,11 +183,11 @@ class RunRLLEARN(object):
                 total_num_steps = (j + 1) * self.num_processes * self.num_steps
             
                 try:
-                    success = float(n_goal_reached) / n_episodes
+                    success = float(self.n_goal_reached) / self.n_episodes
                 except ZeroDivisionError:
                     success = 0.
                 print ("Timesteps: {}, Goal reached : {} / {}, Success %: {}".format(
-                    total_num_steps, n_goal_reached, n_episodes, success))
+                    total_num_steps, self.n_goal_reached, self.n_episodes, success))
 
         if self.lang_coeff > 0:
             av_list = np.array(self.env.action_vectors_list)

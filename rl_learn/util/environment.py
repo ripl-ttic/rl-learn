@@ -30,10 +30,9 @@ class SuccessWrapper(VecEnvWrapper):
         return self.venv.reset()
 
     def step_wait(self):
-        obs, rews, dones, goals_reached = self.venv.step_wait()
+        obs, rews, dones, infos = self.venv.step_wait()
         self.n_goals_reached += np.sum(np.stack(goals_reached))
-        self.n_episodes += np.sum(dones)
-        infos = {'goals_reached': goals_reached}
+        self.n_episodes += sum(item['goal reached'] for item in infos)
         return obs, rews, dones, infos
 
 
@@ -278,7 +277,7 @@ class GymEnvironment(object):
             self._reset()
 
         obs, ac, rew = self.state
-        return obs, ac, rew, goal_reached
+        return obs, ac, rew, {'goal reached': goal_reached}
 
     def setup_language_network(self):
         ckptr = Checkpointer('train/logs/learn/' + self.lang_enc + '/ckpts')

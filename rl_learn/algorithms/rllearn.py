@@ -143,7 +143,7 @@ class RunRLLEARN(object):
 
                 cpu_actions = action.squeeze(1).cpu().numpy()
 
-                obs, reward, done, goal_reached = self.env.step(action)
+                obs, reward, done, info = self.env.step(action)
                 reward = torch.from_numpy(np.expand_dims(np.stack([reward]), 1)).float()
 
                 masks = torch.FloatTensor([[0.0] if done_ else [1.0] for done_ in [done]])
@@ -161,7 +161,7 @@ class RunRLLEARN(object):
                 if done:
                     self.n_episodes += 1
                     self.env.reset()                
-                    if goal_reached:
+                    if info['goal reached']:
                         self.n_goal_reached += 1
 
                 self.t += self.num_processes

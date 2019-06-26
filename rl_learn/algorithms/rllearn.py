@@ -42,7 +42,7 @@ class RunRLLEARN(object):
         mode='paper',
         noise=0.0,
         gpu=True
-    )
+    ):
         self.logdir = logdir
         self.ckptr = Checkpointer(os.path.join(self.logdir, 'ckpts'))
         self.log_period = log_period

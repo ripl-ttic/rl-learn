@@ -1,5 +1,5 @@
 import dl.util.gin_torch_externals
 
 
-RunLearn.actions_file = "./data/action_labels.txt"
-RunLearn.data_file = "./data/train_lang_data.pkl"
+RunLEARN.actions_file = "./data/action_labels.txt"
+RunLEARN.data_file = "./data/train_lang_data.pkl"

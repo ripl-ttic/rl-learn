@@ -1,5 +1,5 @@
 from dl.util import load_gin_configs
-from rl_learn.algorithms import RunLearn
+from rl_learn.algorithms import RunLEARN
 import argparse, os
 
 if __name__=='__main__':
@@ -15,5 +15,5 @@ if __name__=='__main__':
         config = args.gin_config
     load_gin_configs([config], args.gin_bindings)
 
-    learn = RunLearn(args.logdir, args.lang_enc)
+    learn = RunLEARN(args.logdir, args.lang_enc)
     learn.train()

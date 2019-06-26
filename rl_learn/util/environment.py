@@ -37,11 +37,11 @@ class SuccessWrapper(VecEnvWrapper):
 
 
 @gin.configurable
-def make_env(
+def make_env_(
     expt_id, 
     descr_id, 
     gamma,
-    lang_enc,
+    lang_enc="onehot",
     mode='paper',
     gpu=True,
     lang_coeff=0., 
@@ -305,7 +305,7 @@ class GymEnvironment(object):
             length_list = torch.from_numpy(length_list).long().to(self.device)
             print(action_list)
             with torch.no_grad():
-                logits = self.net(action_list, lang_list, length_list).cpu().detach().numpy()
+                logits = self.net(action_list, lang_list, length_list)[0].cpu().detach().numpy()
             print(logits)
 
         if logits is None:

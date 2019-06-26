@@ -7,10 +7,11 @@ from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
 
-@gin.configurable
-class RLLEARN(PPO):
-    def __init__(self, *args, **kwargs):
+@gin.configurable(blacklist=['logdir'])
+class RunRLLEARN(PPO):
+    def __init__(self, *args, use_gae=True, **kwargs):
         super().__init__(*args, **kwargs)
+        self.use_gae = use_gae
 
     def _make_env(self, env_fn, nenv):
         def _env(rank):
@@ -24,6 +25,44 @@ class RLLEARN(PPO):
         env = SuccessWrapper(env)
         tstart = max(self.ckptr.ckpts()) if len(self.ckptr.ckpts()) > 0 else 0
         return VecMonitor(env, max_history=100, tstart=tstart, tbX=True)
+
+    def step(self):
+        logger.log("========================|  Iteration: {}  |========================".format(self.t // (self.steps_per_iter*self.nenv)))
+
+        # collect rollout data
+        for _ in range(self.steps_per_iter):
+            self.act()
+
+        # compute advantage and value targets
+        with torch.no_grad():
+            if self.recurrent:
+                next_value = self.net(self._ob, mask=self._mask, state_in=self._state).value
+            else:
+                next_value = self.net(self._ob).value
+            self.rollout.compute_targets(next_value, self._mask, self.gamma, use_gae=self.use_gae, lambda_=self.lambda_, norm_advantages=self.norm_advantages)
+
+        # update running norm
+        if self.norm_observations:
+            with torch.no_grad():
+                batch_mean, batch_var, batch_count = self.rollout.compute_ob_stats()
+                self.net.running_norm.update(batch_mean, batch_var, batch_count)
+
+        # update model
+        for _ in range(self.epochs_per_iter):
+            if self.recurrent:
+                sampler = self.rollout.recurrent_generator(self.batch_size)
+            else:
+                sampler = self.rollout.feed_forward_generator(self.batch_size)
+
+            for batch in sampler:
+                self.opt.zero_grad()
+                loss = self.loss(batch)
+                loss.backward()
+                if self.max_grad_norm:
+                    nn.utils.clip_grad_norm_(self.net.parameters(), self.max_grad_norm)
+                self.opt.step()
+            self.log_losses()
+        self.log()
 
     def log(self):
         with torch.no_grad():

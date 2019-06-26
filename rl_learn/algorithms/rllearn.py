@@ -1,85 +1,283 @@
-import gin
-from dl.algorithms import PPO
-from dl.util import logger, VecMonitor
-
-import torch
-import torch.nn as nn
-import numpy as np
+import copy
+import os
+import math
 import time
 
-from rl_learn.util import SuccessWrapper
-from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
-from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
+import gym
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
+from rl_learn.modules import Policy
+from rl_learn.util import RolloutStorage, GymEnvironment, Checkpointer, logger, Monitor
+from scipy.stats import spearmanr
 
 
 @gin.configurable(blacklist=['logdir'])
-class RunRLLEARN(PPO):
-    def __init__(self, *args, use_gae=True, log_period=5000, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.use_gae = use_gae
-        self.log_start = 0
+class RunRLLEARN(object):
+    def __init__(self,
+        logdir,
+        log_period,
+        save_period,
+        lang_enc,
+        expt_id,
+        descr_id,
+        lang_coef,
+        maxt=500000,
+        num_steps=64,
+        num_processes=1,
+        gamma=0.99,
+        tau=0.95,
+        use_gae=False,
+        clip_param=0.2,
+        ppo_epoch=4,
+        batch_size=8,
+        v_loss_coef=0.5,
+        entropy_coef=0.01,
+        lr=7e-4,
+        eps=1e-5,
+        max_grad_norm=0.5,
+        mode='paper',
+        noise=0.0,
+        gpu=True
+    )
+        self.logdir = logdir
+        self.ckptr = Checkpointer(os.path.join(self.logdir, 'ckpts'))
         self.log_period = log_period
-
-    def _make_env(self, env_fn, nenv):
-        def _env(rank):
-            def _thunk():
-                return env_fn(rank=rank)
-            return _thunk
-        if nenv > 1:
-            env = SubprocVecEnv([_env(i) for i in range(nenv)])
-        else:
-            env = DummyVecEnv([_env(0)])
-        env = SuccessWrapper(env)
-        tstart = max(self.ckptr.ckpts()) if len(self.ckptr.ckpts()) > 0 else 0
-        return VecMonitor(env, max_history=100, tstart=tstart, tbX=True)
-
-    def step(self):
-        # collect rollout data
-        for _ in range(self.steps_per_iter):
-            self.act()
-
-        # compute advantage and value targets
-        with torch.no_grad():
-            if self.recurrent:
-                next_value = self.net(self._ob, mask=self._mask, state_in=self._state).value
-            else:
-                next_value = self.net(self._ob).value
-            self.rollout.compute_targets(next_value, self._mask, self.gamma, use_gae=self.use_gae, lambda_=self.lambda_, norm_advantages=self.norm_advantages)
-
-        # update running norm
-        if self.norm_observations:
-            with torch.no_grad():
-                batch_mean, batch_var, batch_count = self.rollout.compute_ob_stats()
-                self.net.running_norm.update(batch_mean, batch_var, batch_count)
-
-        # update model
-        for _ in range(self.epochs_per_iter):
-            if self.recurrent:
-                sampler = self.rollout.recurrent_generator(self.batch_size)
-            else:
-                sampler = self.rollout.feed_forward_generator(self.batch_size)
-
-            for batch in sampler:
-                self.opt.zero_grad()
-                loss = self.loss(batch)
-                loss.backward()
-                if self.max_grad_norm:
-                    nn.utils.clip_grad_norm_(self.net.parameters(), self.max_grad_norm)
-                self.opt.step()
-            self.log_losses()
+        self.save_period = save_period
         
-        if self.t > self.log_start + self.log_period:
-            logger.log("========================|  Iteration: {}, Timestep: {}  |========================".format(self.t // (self.steps_per_iter*self.nenv), self.t))
-            self.log()
-            self.log_start = self.t
+
+        self.maxt = maxt
+        self.num_steps = num_steps
+        self.num_processes = num_processes
+        self.lang_enc = lang_enc
+        self.gamma = gamma
+        self.tau = tau
+        self.use_gae = use_gae
+
+        self.clip_param = clip_param
+        self.ppo_epoch = ppo_epoch
+        self.batch_size = batch_size
+        self.v_loss_coef = v_loss_coef
+        self.entropy_coef = entropy_coef
+        self.lr = lr
+        self.eps = eps
+        self.max_grad_norm = max_grad_norm
+
+        self.device = torch.device("cuda:0" if gpu and torch.cuda.is_available() else "cpu")
+
+        self.env = GymEnvironment(
+            expt_id,
+            descr_id,
+            self.gamma,
+            self.lang_enc,
+            lang_coef,
+            noise,
+            self.device
+        )
+        env = Monitor(env, logger.get_dir() and os.path.join(logger.get_dir(), str(0)))
+        self.env.env = self.env.env.unwrapped
+
+        self.net = Policy(self.env.observation_space.shape, self.env.action_space,
+            base_kwargs={'recurrent': False})
+        self.net.to(self.device)
+
+        self.optim = optim.Adam(self.net.parameters(), lr=lr, eps=eps)
+
+        self.rollouts = RolloutStorage(self.num_steps, self.num_processes, self.env.observation_space.shape,
+            self.env.action_space, self.net.recurrent_hidden_state_size)
+
+        self.t, self.t_start = 0, 0
+
+        self.losses = {'tot':[], 'pi':[], 'value':[], 'ent':[]}
+        self.meanlosses = {'tot':[], 'pi':[], 'value':[], 'ent':[]}
+        
+
+    def train(self):
+        config = gin.operative_config_str()
+        logger.log("=================== CONFIG ===================")
+        logger.log(config)
+        with open(os.path.join(self.logdir, 'config.gin'), 'w') as f:
+            f.write(config)
+        self.time_start = time.monotonic()
+        if len(self.ckptr.ckpts()) > 0:
+            self.load()
+        if self.t == 0:
+            cstr = config.replace('\n', '  \n')
+            cstr = cstr.replace('#', '\\#')
+            logger.add_text('config', cstr, 0, time.time())
+        if self.maxt and self.t > self.maxt:
+            return
+        if self.save_period:
+            last_save = (self.t // self.save_period) * self.save_period
+
+        current_obs = torch.zeros(self.num_processes, *self.env.observation_space.shape)
+        obs = self.env.reset()
+        obs = obs[np.newaxis, ...]
+
+        current_obs[:, -1] = torch.from_numpy(obs)
+        self.rollouts.obs[0].copy_(current_obs)
+
+
+        current_obs = current_obs.to(self.device)
+        self.rollouts.to(self.device)
+
+        num_updates = math.ceil(self.maxt / (self.num_processes * self.num_steps))
+        self.n_goal_reached = 0
+        self.n_episodes = 0
+        for j in range(num_updates):
+            for step in range(self.num_steps):
+                with torch.no_grad():
+                    value, action, action_log_prob, recurrent_hidden_states = self.net.act(
+                            self.rollouts.obs[step],
+                            self.rollouts.recurrent_hidden_states[step],
+                            self.rollouts.masks[step])
+
+                cpu_actions = action.squeeze(1).cpu().numpy()
+
+                obs, reward, done, goal_reached = self.env.step(action)
+                reward = torch.from_numpy(np.expand_dims(np.stack([reward]), 1)).float()
+
+                masks = torch.FloatTensor([[0.0] if done_ else [1.0] for done_ in [done]])
+
+                masks = masks.to(self.device)
+
+
+                current_obs[:, :-1] = current_obs[:, 1:]
+                if done:
+                    current_obs[:] = 0
+                current_obs[:, -1] = torch.from_numpy(obs)
+                self.rollouts.insert(current_obs, recurrent_hidden_states, action, action_log_prob, 
+                    value, reward, masks)
+
+                if done:
+                    self.n_episodes += 1
+                    env.new_expt()                
+                    if goal_reached:
+                        self.n_goal_reached += 1
+
+                self.t += self.num_processes
+
+                if self.save_period and (self.t - last_save) >= self.save_period:
+                    self.save()
+                    last_save = self.t
+
+            with torch.no_grad():
+                next_value = self.net.get_value(self.rollouts.obs[step],
+                                                self.rollouts.recurrent_hidden_states[step],
+                                                self.rollouts.masks[step]).detach()
+
+            self.rollouts.compute_returns(next_value, self.use_gae, self.gamma, self.tau, step)
+            value_loss, action_loss, dist_entropy = self.update(self.rollouts, step)
+            self.rollouts.after_update()
+
+            if j % self.log_period == 0:
+                logger.log("========================|  Timestep: {}  |========================".format(self.t))
+                self.log()
+
+        if self.lang_coeff > 0:
+            av_list = np.array(env.action_vectors_list)
+            for k in range(len(spearman_corr_coeff_actions)):
+                sr, _ = spearmanr(self.env.rewards_list, av_list[:, k])
+                print (k, sr)
+
+        if self.t not in self.ckptr.ckpts():
+            self.save()
+        logger.export_scalars(self.ckptr.format.format(self.t) + '.json')
+        self.close()
+            
+    def update(self, max_step):
+        advantages = self.rollouts.returns[:max_step] - self.rollouts.value_preds[:max_step]
+        advantages = (advantages - advantages.mean()) / (
+            advantages.std() + 1e-5)
+
+        value_loss_epoch = 0
+        action_loss_epoch = 0
+        dist_entropy_epoch = 0
+
+        for e in range(self.ppo_epoch):
+            if self.net.is_recurrent:
+                data_generator = self.rollouts.recurrent_generator(
+                    advantages, self.batch_size)
+            else:
+                data_generator = self.rollouts.feed_forward_generator(
+                    advantages, self.batch_size, max_step)
+
+            for sample in data_generator:
+                obs_batch, recurrent_hidden_states_batch, actions_batch, \
+                   return_batch, masks_batch, old_action_log_probs_batch, \
+                        adv_targ = sample
+
+                # Reshape to do in a single forward pass for all steps
+                values, action_log_probs, dist_entropy, states = self.net.evaluate_actions(
+                    obs_batch, recurrent_hidden_states_batch,
+                    masks_batch, actions_batch)
+
+                ratio = torch.exp(action_log_probs - old_action_log_probs_batch)
+                surr1 = ratio * adv_targ
+                surr2 = torch.clamp(ratio, 1.0 - self.clip_param,
+                                           1.0 + self.clip_param) * adv_targ
+                action_loss = -torch.min(surr1, surr2).mean()
+                self.losses['pi'].append(action_loss)
+
+                value_loss = F.mse_loss(return_batch, values)
+                self.losses['value'].append(value_loss)
+
+                self.losses['ent'].append(dist_entropy)
+
+                self.optim.zero_grad()
+                total_loss = value_loss * self.value_loss_coef + action_loss - dist_entropy * self.entropy_coef
+                self.losses['tot'].append(total_loss)
+                total_loss.backward()
+                nn.utils.clip_grad_norm_(self.net.parameters(),
+                                         self.max_grad_norm)
+                self.optim.step()
+
+                value_loss_epoch += value_loss.item()
+                action_loss_epoch += action_loss.item()
+                dist_entropy_epoch += dist_entropy.item()
+
+            self.log_losses()
+
+        num_updates = self.ppo_epoch * self.num_mini_batch
+
+        value_loss_epoch /= num_updates
+        action_loss_epoch /= num_updates
+        dist_entropy_epoch /= num_updates
+
+        return value_loss_epoch, action_loss_epoch, dist_entropy_epoch
+
+    def state_dict(self):
+        return {
+            'net': self.net.state_dict(),
+            'opt': self.opt.state_dict(),
+            't':   self.t,
+        }
+
+    def load_state_dict(self):
+        self.net.load_state_dict(state_dict['net'])
+        self.opt.load_state_dict(state_dict['opt'])
+        self.t = state_dict['t']
+
+    def save(self):
+        self.ckptr.save(self.state_dict(), self.t)
+
+    def load(self, t=None):
+        self.load_state_dict(self.ckptr.load(t))
+        self.t_start = self.t
+
+    def close(self):
+        if hasattr(self.env, 'close'):
+            self.env.close()
+        logger.reset()
 
     def log_losses(self):
         s = 'Losses:  '
         for ln in ['tot', 'pi', 'value', 'ent']:
             with torch.no_grad():
                 self.meanlosses[ln].append((sum(self.losses[ln]) / len(self.losses[ln])).cpu().numpy())
-            s += '{}: {:08f}  '.format(ln, self.meanlosses[ln][-1])
-        # logger.log(s)
         self.losses = {'tot':[], 'pi':[], 'value':[], 'ent':[]}
 
     def log(self):
@@ -94,23 +292,17 @@ class RunRLLEARN(PPO):
             logger.add_scalar('loss/entropy', np.mean(self.meanlosses['ent']), self.t, time.time())
         self.meanlosses = {'tot':[], 'pi':[], 'value':[], 'ent':[]}
         # Logging stats...
+        try:
+            success = float(self.n_goal_reached) / self.n_episodes
+        except ZeroDivisionError:
+            success = 0.
         logger.logkv('timesteps', self.t)
         logger.logkv('fps', int((self.t - self.t_start) / (time.monotonic() - self.time_start)))
         logger.logkv('time_elapsed', time.monotonic() - self.time_start)
-
         logger.logkv('mean episode length', np.mean(self.env.episode_lengths))
         logger.logkv('mean episode reward', np.mean(self.env.episode_rewards))
-        
-        if self.env.n_episodes > 0:
-            success_rate = float(self.env.n_goals_reached / self.env.n_episodes)
-        else:
-            success_rate = 0
-        vmax = torch.max(self.rollout.data['vpred']).cpu().numpy()
-        vmean = torch.mean(self.rollout.data['vpred']).cpu().numpy()
-        logger.add_scalar('alg/v_max', vmax, self.t, time.time())
-        logger.add_scalar('alg/v_mean', vmean, self.t, time.time())
-        logger.logkv('successful eps', self.env.n_goals_reached)
-        logger.add_scalar('alg/success_eps', self.env.n_goals_reached, self.t, time.time())
-        logger.logkv('success rate', success_rate)
-        logger.add_scalar('alg/success_rate', success_rate, self.t, time.time())
+        logger.logkv('successes', self.n_goal_reached)
+        logger.logkv('episodes', self.n_episodes)
+        logger.logkv('success rate', success
+
         logger.dumpkvs()

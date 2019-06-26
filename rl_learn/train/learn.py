@@ -1,4 +1,4 @@
-from dl.util import load_gin_configs
+from rl_learn.util import load_gin_configs
 from rl_learn.algorithms import RunLEARN
 import argparse, os
 

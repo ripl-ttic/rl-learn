@@ -13,43 +13,11 @@ import pickle
 import torch
 
 import gin
-from dl.util import Monitor, logger, Checkpointer
+from dl.util import Checkpointer
 
 from rl_learn.modules import LEARN
 from rl_learn.util.tasks import *
 from rl_learn.util import get_batch_lang_lengths, rgb2gray
-
-
-class SuccessWrapper(VecEnvWrapper):
-    def __init__(self, venv):
-        super().__init__(venv)
-        self.n_goals_reached = 0
-        self.n_episodes = 0
-
-    def reset(self):
-        return self.venv.reset()
-
-    def step_wait(self):
-        obs, rews, dones, infos = self.venv.step_wait()
-        self.n_goals_reached += sum(item['goal reached'] for item in infos)
-        self.n_episodes += np.sum(dones)
-        return obs, rews, dones, infos
-
-
-@gin.configurable
-def make_env_(
-    expt_id, 
-    descr_id, 
-    gamma,
-    lang_enc="onehot",
-    mode='paper',
-    gpu=True,
-    lang_coeff=0., 
-    noise=0., 
-    rank=0
-):
-    env = GymEnvironment(expt_id, descr_id, gamma, lang_enc, gpu, mode, lang_coeff, noise)
-    return Monitor(env, logger.get_dir() and os.path.join(logger.get_dir(), str(rank)))
 
 
 @gin.configurable
@@ -59,10 +27,10 @@ class GymEnvironment(object):
         descr_id,
         gamma,
         lang_enc,
-        gpu,
-        mode,
         lang_coeff,
         noise,
+        device,
+        mode='paper',
         env_id='MontezumaRevenge-v0',
         screen_width=84,
         screen_height=84,
@@ -74,7 +42,7 @@ class GymEnvironment(object):
         self.expt_id = expt_id
         self.descr_id = descr_id
         self.lang_enc = lang_enc
-        self.device = torch.device("cuda:0" if gpu and torch.cuda.is_available() else "cpu")
+        self.device = device
         self.mode = mode
         self.lang_coeff = lang_coeff
         self.noise = noise
@@ -208,10 +176,6 @@ class GymEnvironment(object):
             return imresize(rgb2gray(self._screen)/255., self.dims)
         elif self.mode == 'raw':
             return self._screen
-
-    @property
-    def action_size(self):
-        return self.env.action_space.n
 
     @property
     def lives(self):

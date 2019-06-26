@@ -14,9 +14,10 @@ from baselines.common.vec_env.dummy_vec_env import DummyVecEnv
 
 @gin.configurable(blacklist=['logdir'])
 class RunRLLEARN(PPO):
-    def __init__(self, *args, use_gae=True, **kwargs):
+    def __init__(self, *args, use_gae=True, log_period=1000, **kwargs):
         super().__init__(*args, **kwargs)
         self.use_gae = use_gae
+        self.log_start = 0
 
     def _make_env(self, env_fn, nenv):
         def _env(rank):
@@ -67,7 +68,10 @@ class RunRLLEARN(PPO):
                     nn.utils.clip_grad_norm_(self.net.parameters(), self.max_grad_norm)
                 self.opt.step()
             self.log_losses()
-        self.log()
+        
+        if self.t > self.log_start + self.log_period:
+            self.log()
+            self.log_start = self.t
 
     def log(self):
         with torch.no_grad():

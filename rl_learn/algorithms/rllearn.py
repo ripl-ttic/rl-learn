@@ -174,7 +174,7 @@ class RunRLLEARN(object):
                                                 self.rollouts.masks[step]).detach()
 
             self.rollouts.compute_returns(next_value, self.use_gae, self.gamma, self.tau, step)
-            value_loss, action_loss, dist_entropy = self.update(self.rollouts, step)
+            value_loss, action_loss, dist_entropy = self.update(step)
             self.rollouts.after_update()
 
             if j % self.log_period == 0:

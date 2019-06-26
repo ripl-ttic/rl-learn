@@ -1,7 +1,7 @@
 import gin, os, time
 import numpy as np
 from random import shuffle
-from dl.util import Checkpointer, logger, rng
+from rl_learn.util import Checkpointer, logger
 
 import torch
 import torch.nn as nn

@@ -18,6 +18,7 @@ class RunRLLEARN(PPO):
         super().__init__(*args, **kwargs)
         self.use_gae = use_gae
         self.log_start = 0
+        self.log_period = log_period
 
     def _make_env(self, env_fn, nenv):
         def _env(rank):

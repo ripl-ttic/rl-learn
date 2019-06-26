@@ -34,7 +34,7 @@ class RunRLLEARN(PPO):
         return VecMonitor(env, max_history=100, tstart=tstart, tbX=True)
 
     def step(self):
-        logger.log("========================|  Iteration: {}  |========================".format(self.t // (self.steps_per_iter*self.nenv)))
+        
 
         # collect rollout data
         for _ in range(self.steps_per_iter):
@@ -71,6 +71,7 @@ class RunRLLEARN(PPO):
             # self.log_losses()
         
         if self.t > self.log_start + self.log_period:
+            logger.log("========================|  Iteration: {}  |========================".format(self.t // (self.steps_per_iter*self.nenv)))
             self.log()
             self.log_start = self.t
 

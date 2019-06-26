@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from rl_learn.util import Categorical, DiagGaussian, init, init_normc_
+from rl_learn.modules import Categorical, DiagGaussian
+from rl_learn.util import init, init_normc_
 
 
 class Flatten(nn.Module):

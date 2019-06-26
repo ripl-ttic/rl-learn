@@ -2,6 +2,8 @@ import gin
 from dl.algorithms import PPO
 from dl.util import logger, VecMonitor
 
+import torch
+
 from rl_learn.util import SuccessWrapper
 from baselines.common.vec_env.subproc_vec_env import SubprocVecEnv
 from baselines.common.vec_env.dummy_vec_env import DummyVecEnv

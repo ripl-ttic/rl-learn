@@ -79,8 +79,9 @@ class RunRLLEARN(object):
             noise,
             self.device
         )
-        self.env = Monitor(self.env, logger.get_dir() and os.path.join(logger.get_dir(), str(0)))
         self.env.env = self.env.env.unwrapped
+        self.env = Monitor(self.env, logger.get_dir() and os.path.join(logger.get_dir(), str(0)))
+        
 
         self.net = Policy(self.env.observation_space.shape, self.env.action_space,
             base_kwargs={'recurrent': False})

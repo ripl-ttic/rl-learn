@@ -176,6 +176,10 @@ class GymEnvironment(object):
         return self.env.reward_range
 
     @property
+    def metadata(self):
+        return self.env.metadata
+
+    @property
     def lives(self):
         return self.env.ale.lives()
 

@@ -303,6 +303,6 @@ class RunRLLEARN(object):
         logger.logkv('mean episode reward', np.mean(self.env.episode_rewards))
         logger.logkv('successes', self.n_goal_reached)
         logger.logkv('episodes', self.n_episodes)
-        logger.logkv('success rate', success
+        logger.logkv('success rate', success)
 
         logger.dumpkvs()

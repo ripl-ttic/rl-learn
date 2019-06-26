@@ -180,7 +180,7 @@ class RunRLLEARN(object):
             if j % self.log_period == 0:
                 # logger.log("========================|  Timestep: {}  |========================".format(self.t))
                 # self.log()
-                total_num_steps = (j + 1) * num_processes * num_steps
+                total_num_steps = (j + 1) * self.num_processes * self.num_steps
             
                 try:
                     success = float(n_goal_reached) / n_episodes

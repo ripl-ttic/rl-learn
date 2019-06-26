@@ -245,7 +245,7 @@ class RunRLLEARN(object):
 
             self.log_losses()
 
-        num_updates = self.ppo_epoch * self.num_mini_batch
+        num_updates = self.ppo_epoch * self.batch_size
 
         value_loss_epoch /= num_updates
         action_loss_epoch /= num_updates

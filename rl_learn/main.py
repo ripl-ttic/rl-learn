@@ -13,7 +13,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import pickle
 
-from rl_learn.modules import Policy
+from model import Policy
 from rl_learn.util import RolloutStorage
 from ppo import PPO
 from random import seed

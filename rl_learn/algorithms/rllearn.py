@@ -10,6 +10,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+import gin
+
 from rl_learn.modules import Policy
 from rl_learn.util import RolloutStorage, GymEnvironment, Checkpointer, logger, Monitor
 from scipy.stats import spearmanr

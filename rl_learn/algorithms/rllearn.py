@@ -180,16 +180,16 @@ class RunRLLEARN(object):
             self.rollouts.after_update()
 
             if j % self.log_period == 0:
-                # logger.log("========================|  Timestep: {}  |========================".format(self.t))
-                # self.log()
-                total_num_steps = (j + 1) * self.num_processes * self.num_steps
+                logger.log("========================|  Timestep: {}  |========================".format(self.t))
+                self.log()
+                # total_num_steps = (j + 1) * self.num_processes * self.num_steps
             
-                try:
-                    success = float(self.n_goal_reached) / self.n_episodes
-                except ZeroDivisionError:
-                    success = 0.
-                print ("Timesteps: {}, Goal reached : {} / {}, Success %: {}".format(
-                    total_num_steps, self.n_goal_reached, self.n_episodes, success))
+                # try:
+                #     success = float(self.n_goal_reached) / self.n_episodes
+                # except ZeroDivisionError:
+                #     success = 0.
+                # print ("Timesteps: {}, Goal reached : {} / {}, Success %: {}".format(
+                #     total_num_steps, self.n_goal_reached, self.n_episodes, success))
 
         if self.lang_coeff > 0:
             av_list = np.array(self.env.action_vectors_list)
@@ -253,7 +253,7 @@ class RunRLLEARN(object):
                 action_loss_epoch += action_loss.item()
                 dist_entropy_epoch += dist_entropy.item()
 
-            # self.log_losses()
+            self.log_losses()
 
         num_up = self.ppo_epoch * self.batch_size
 

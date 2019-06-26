@@ -158,7 +158,7 @@ class RunRLLEARN(object):
 
                 if done:
                     self.n_episodes += 1
-                    env.new_expt()                
+                    self.env.reset()                
                     if goal_reached:
                         self.n_goal_reached += 1
 
@@ -182,7 +182,7 @@ class RunRLLEARN(object):
                 self.log()
 
         if self.lang_coeff > 0:
-            av_list = np.array(env.action_vectors_list)
+            av_list = np.array(self.env.action_vectors_list)
             for k in range(len(spearman_corr_coeff_actions)):
                 sr, _ = spearmanr(self.env.rewards_list, av_list[:, k])
                 print (k, sr)

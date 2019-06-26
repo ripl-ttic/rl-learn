@@ -50,6 +50,7 @@ class RunRLLEARN(object):
         self.log_period = log_period
         self.save_period = save_period
         
+        logger.configure(logdir, ['stdout', 'log'])
 
         self.maxt = maxt
         self.num_steps = num_steps

@@ -232,7 +232,7 @@ class RunRLLEARN(object):
                 self.losses['ent'].append(dist_entropy)
 
                 self.optim.zero_grad()
-                total_loss = value_loss * self.value_loss_coef + action_loss - dist_entropy * self.entropy_coef
+                total_loss = value_loss * self.v_loss_coef + action_loss - dist_entropy * self.entropy_coef
                 self.losses['tot'].append(total_loss)
                 total_loss.backward()
                 nn.utils.clip_grad_norm_(self.net.parameters(),

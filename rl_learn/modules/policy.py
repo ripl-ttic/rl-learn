@@ -23,7 +23,6 @@ class Policy(nn.Module):
         else:
             raise NotImplementedError
 
-        '''
         if action_space.__class__.__name__ == "Discrete":
             num_outputs = action_space.n
             self.dist = Categorical(self.base.output_size, num_outputs)
@@ -32,9 +31,6 @@ class Policy(nn.Module):
             self.dist = DiagGaussian(self.base.output_size, num_outputs)
         else:
             raise NotImplementedError
-        '''
-        num_outputs = 18
-        self.dist = Categorical(self.base.output_size, num_outputs)
 
     @property
     def is_recurrent(self):

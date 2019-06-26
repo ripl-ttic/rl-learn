@@ -1,26 +1,24 @@
 import gym
 from gym import spaces
-from gym.core import Wrapper
-from baselines.common.vec_env.vec_env import VecEnvWrapper
 
 import os, sys, random
 import numpy as np
 from scipy.misc import imresize
 
 from PIL import Image
-import tensorflow as tf
 import pickle
+
 import torch
 
-import gin
-from dl.util import Checkpointer
+from rl_learn.util import Checkpointer
 
 from rl_learn.modules import LEARN
 from rl_learn.util.tasks import *
 from rl_learn.util import get_batch_lang_lengths, rgb2gray
 
+random.seed(a=17)
+np.random.seed(17)
 
-@gin.configurable
 class GymEnvironment(object):
     def __init__(self, 
         expt_id,
@@ -35,7 +33,6 @@ class GymEnvironment(object):
         screen_width=84,
         screen_height=84,
         vocab_size=296,
-        n_actions=18,
         random_start=30,
         max_steps=1000
     ):
@@ -47,9 +44,9 @@ class GymEnvironment(object):
         self.lang_coeff = lang_coeff
         self.noise = noise
         self.env = gym.make(env_id)
+        self.env.seed(0)
 
         self.vocab_size = vocab_size
-        self.n_actions = n_actions
         self.random_start = random_start
         self.dims = (screen_width, screen_height)
         self.max_steps = max_steps
@@ -69,7 +66,7 @@ class GymEnvironment(object):
 
     def _reset(self):
         self.n_steps = 0
-        self.action_vector = np.zeros(self.n_actions)
+        self.action_vector = np.zeros(self.env.action_space.n)
         self.potentials_list = []
 
     def new_game(self, from_random_game=False):
@@ -193,17 +190,9 @@ class GymEnvironment(object):
     def action_space(self):
         return self.env.action_space
 
-    @property
-    def spec(self):
-        return self.env.spec
-    
-    @property
-    def reward_range(self):
-        return self.env.reward_range
-
-    @property
-    def metadata(self):
-        return self.env.metadata
+    # @property
+    # def state(self):
+    #     return self.screen, self.reward, self.terminal
 
     def step(self, action):
         start_lives = self.lives
@@ -229,19 +218,18 @@ class GymEnvironment(object):
         if self.lang_coeff > 0.0:
             lang_reward = self.lang_coeff * self.compute_language_reward()
             self.reward += lang_reward
-            pass 
         if self.n_steps > self.max_steps:
             self.terminal = True
         
         if self.terminal:
             self._reset()
 
-        return self.screen, self.reward, self.terminal, {'goal reached': goal_reached}
+        return self.screen, self.reward, self.terminal, goal_reached
 
     def setup_language_network(self):
         ckptr = Checkpointer('train/logs/learn/' + self.lang_enc + '/ckpts')
         save_dict = ckptr.load()
-        self.net = LEARN(self.vocab_size, self.n_actions, self.lang_enc)
+        self.net = LEARN(self.vocab_size, self.env.action_space.n, self.lang_enc)
         self.net.load_state_dict(save_dict['net'])
         self.net.to(self.device)
         self.net.train(False)
@@ -280,9 +268,6 @@ class GymEnvironment(object):
             return self.gamma * self.potentials_list[-1] - self.potentials_list[-2]
         else:
             return 0.
-
-    def render(self, mode='human'):
-        self.env.render(mode)
 
     def close(self):
         self.env.close()

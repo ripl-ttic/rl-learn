@@ -88,7 +88,7 @@ class RunRLLEARN(object):
             base_kwargs={'recurrent': False})
         self.net.to(self.device)
 
-        self.optim = optim.Adam(self.net.parameters(), lr=lr, eps=eps)
+        self.opt = optim.Adam(self.net.parameters(), lr=lr, eps=eps)
 
         self.rollouts = RolloutStorage(self.num_steps, self.num_processes, self.env.observation_space.shape,
             self.env.action_space, self.net.recurrent_hidden_state_size)
@@ -231,13 +231,13 @@ class RunRLLEARN(object):
 
                 self.losses['ent'].append(dist_entropy)
 
-                self.optim.zero_grad()
+                self.opt.zero_grad()
                 total_loss = value_loss * self.v_loss_coef + action_loss - dist_entropy * self.entropy_coef
                 self.losses['tot'].append(total_loss)
                 total_loss.backward()
                 nn.utils.clip_grad_norm_(self.net.parameters(),
                                          self.max_grad_norm)
-                self.optim.step()
+                self.opt.step()
 
                 value_loss_epoch += value_loss.item()
                 action_loss_epoch += action_loss.item()

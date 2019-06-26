@@ -26,8 +26,7 @@ PPO.norm_observations = False
 
 Trainer.maxt = 500000
 Trainer.seed = 0
-Trainer.eval = True
-Trainer.eval_period = 20000
+Trainer.eval = False
 Trainer.save_period = 10000
 
 Checkpointer.min_ckpt_period = 10000

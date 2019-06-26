@@ -191,7 +191,7 @@ class RunRLLEARN(object):
                 # print ("Timesteps: {}, Goal reached : {} / {}, Success %: {}".format(
                 #     total_num_steps, self.n_goal_reached, self.n_episodes, success))
 
-        if self.lang_coeff > 0:
+        if self.lang_coef > 0:
             av_list = np.array(self.env.action_vectors_list)
             for k in range(len(spearman_corr_coeff_actions)):
                 sr, _ = spearmanr(self.env.rewards_list, av_list[:, k])

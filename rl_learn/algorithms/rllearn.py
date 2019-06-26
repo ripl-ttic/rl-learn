@@ -34,8 +34,6 @@ class RunRLLEARN(PPO):
         return VecMonitor(env, max_history=100, tstart=tstart, tbX=True)
 
     def step(self):
-        
-
         # collect rollout data
         for _ in range(self.steps_per_iter):
             self.act()
@@ -68,12 +66,21 @@ class RunRLLEARN(PPO):
                 if self.max_grad_norm:
                     nn.utils.clip_grad_norm_(self.net.parameters(), self.max_grad_norm)
                 self.opt.step()
-            # self.log_losses()
+            self.log_losses()
         
         if self.t > self.log_start + self.log_period:
             logger.log("========================|  Iteration: {}  |========================".format(self.t // (self.steps_per_iter*self.nenv)))
             self.log()
             self.log_start = self.t
+
+    def log_losses(self):
+        s = 'Losses:  '
+        for ln in ['tot', 'pi', 'value', 'ent']:
+            with torch.no_grad():
+                self.meanlosses[ln].append((sum(self.losses[ln]) / len(self.losses[ln])).cpu().numpy())
+            s += '{}: {:08f}  '.format(ln, self.meanlosses[ln][-1])
+        # logger.log(s)
+        self.losses = {'tot':[], 'pi':[], 'value':[], 'ent':[]}
 
     def log(self):
         with torch.no_grad():

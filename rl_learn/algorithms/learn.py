@@ -14,7 +14,6 @@ from rl_learn.util import Data, get_batch_lang_lengths
 @gin.configurable(blacklist=['lang_enc'])
 class RunLEARN(object):
     def __init__(self,
-        logdir,
         lang_enc,
         actions_file,
         data_file,

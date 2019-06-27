@@ -20,8 +20,9 @@ from scipy.stats import spearmanr
 def log(str, logdir):
     print(str)
     directory = logdir + 'log.txt'
-    with open(directory, 'w+') as f:
-        f.write(str)
+    f = open(directory, 'w+')
+    f.write(str)
+    f.close()
     return 
 
 

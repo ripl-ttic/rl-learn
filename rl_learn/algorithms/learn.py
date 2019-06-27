@@ -138,7 +138,7 @@ def log(str, logdir):
     print(str)
     filename = Path(logdir + 'log.txt')
     filename.touch(exist_ok=True)
-    f = open(filename, 'w')
+    f = open(filename, 'a')
     f.write(str)
     f.close()
     return 

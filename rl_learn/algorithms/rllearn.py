@@ -2,6 +2,7 @@ import copy
 import os
 import math
 import time
+from pathlib import Path
 
 import gym
 import numpy as np
@@ -19,8 +20,9 @@ from scipy.stats import spearmanr
 
 def log(str, logdir):
     print(str)
-    directory = logdir + 'log.txt'
-    f = open(directory, 'w+')
+    filename = Path(logdir + 'log.txt')
+    filename.touch(exist_ok=True)
+    f = open(filename, 'w')
     f.write(str)
     f.close()
     return 

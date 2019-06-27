@@ -57,6 +57,8 @@ class RunRLLEARN(object):
         self.logdir = 'train/logs/rllearn/task{}/descr{}/'.format(expt_id, descr_id)
         self.log_period = log_period
 
+        open(logdir + 'log.txt', 'w').close()
+
         self.maxt = maxt
         self.num_steps = num_steps
         self.num_processes = num_processes

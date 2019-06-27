@@ -31,12 +31,11 @@ def log(str, logdir):
 @gin.configurable(blacklist=['lang_enc', 'expt_id', 'descr_id', 'lang_coef'])
 class RunRLLEARN(object):
     def __init__(self,
-        logdir,
-        log_period,
         lang_enc,
         expt_id,
         descr_id,
         lang_coef,
+        log_period,
         maxt=500000,
         num_steps=64,
         num_processes=1,

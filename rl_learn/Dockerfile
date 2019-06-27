@@ -59,6 +59,3 @@ RUN git clone https://github.com/openai/baselines.git
 RUN /bin/bash -c ". activate rl-learn; cd baselines; pip install -e ."
 
 RUN pip install tb-nightly
-
-RUN git clone https://github.com/cbschaff/pytorch-dl.git
-RUN /bin/bash -c ". activate deepassist; cd pytorch-dl; pip install -e ."

@@ -220,7 +220,7 @@ class GymEnvironment(object):
         self.opt = optim.Adam(self.net.parameters(), lr=1e-4)
         ckpt = torch.load('train/logs/learn/{}/net.pkl'.format(self.lang_enc))
         self.net.load_state_dict(ckpt['net_state_dict'])
-        self.optim.load_state_dict(ckpt['opt_state_dict'])
+        self.opt.load_state_dict(ckpt['opt_state_dict'])
         self.net.to(self.device)
         self.net.train(False)
         sentence_id = (self.expt_id-1) * 3 + (self.descr_id-1)

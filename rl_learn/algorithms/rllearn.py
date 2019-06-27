@@ -163,7 +163,6 @@ class RunRLLEARN(object):
             self.rollouts.after_update()
 
             if j % self.log_period == 0:
-                log("========================|  Timestep: {}  |========================".format(self.t), self.logdir)
             
                 try:
                     success = float(self.n_goal_reached) / self.n_episodes

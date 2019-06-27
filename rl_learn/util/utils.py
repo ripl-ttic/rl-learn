@@ -43,7 +43,7 @@ def get_batch_lang_lengths(lang_list, lang_enc):
         lengths = np.clip(np.array(lengths), 0, 20)
         return langs, lengths
     elif lang_enc == 'infersent':
-        return lang_list, []
+        return np.asarray(lang_list), np.array([])
     else:
         raise NotImplementedError
 

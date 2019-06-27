@@ -5,7 +5,6 @@ import numpy as np
 import torch
 import random
 import gin
-from dl.util import rng
 
 
 def get_state():

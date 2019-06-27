@@ -95,7 +95,6 @@ class RunLEARN(object):
         # if self.epoch not in self.ckptr.ckpts():
         #     self.save()
 
-        logger.export_scalars(self.ckptr.format.format(self.epoch) + '.json')
         logger.reset()
 
     def step(self):

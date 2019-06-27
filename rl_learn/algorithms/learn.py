@@ -135,7 +135,9 @@ class RunLEARN(object):
 
 def log(str, logdir):
     print(str)
-    directory = logdir + 'log.txt'
-    with open(directory, 'w+') as f:
-        f.write(str)
+    filename = Path(logdir + 'log.txt')
+    filename.touch(exist_ok=True)
+    f = open(filename, 'w')
+    f.write(str)
+    f.close()
     return 

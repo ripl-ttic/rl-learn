@@ -57,6 +57,7 @@ class RunRLLEARN(object):
         self.num_steps = num_steps
         self.num_processes = num_processes
         self.lang_enc = lang_enc
+        self.lang_coef = lang_coef
         self.gamma = gamma
         self.tau = tau
         self.use_gae = use_gae
@@ -77,7 +78,7 @@ class RunRLLEARN(object):
             descr_id,
             self.gamma,
             self.lang_enc,
-            lang_coef,
+            self.lang_coef,
             noise,
             self.device
         )
@@ -119,7 +120,7 @@ class RunRLLEARN(object):
             last_save = (self.t // self.save_period) * self.save_period
 
         current_obs = torch.zeros(self.num_processes, *self.env.observation_space.shape)
-        print(current_obs)
+        # print(current_obs)
         obs = self.env.reset()
         obs = obs[np.newaxis, ...]
 

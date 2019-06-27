@@ -120,7 +120,7 @@ class RunRLLEARN(object):
             last_save = (self.t // self.save_period) * self.save_period
 
         current_obs = torch.zeros(self.num_processes, *self.env.observation_space.shape)
-        print(current_obs)
+        # print(current_obs)
         obs = self.env.reset()
         obs = obs[np.newaxis, ...]
 

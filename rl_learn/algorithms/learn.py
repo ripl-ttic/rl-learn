@@ -31,8 +31,8 @@ class RunLEARN(object):
         self.net = LEARN(vocab_size, n_actions, lang_enc)
         self.net.to(self.device)
         self.criterion = nn.CrossEntropyLoss()
-        self.opt = optim.Adam(self.net.parameters(), self.lr)
         self.lr = lr
+        self.opt = optim.Adam(self.net.parameters(), self.lr)
         self.scheduler = optim.ExponentialLR(self.opt, 0.95)
 
 

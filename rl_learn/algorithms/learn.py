@@ -31,10 +31,10 @@ class RunLEARN(object):
         self.device = torch.device("cuda:0" if gpu and torch.cuda.is_available() else "cpu")
         self.net = LEARN(vocab_size, n_actions, lang_enc)
         self.net.to(self.device)
-        self.criterion = nn.CrossEntropyLoss()
+        self.criterion = nn.CrossEntropyLoss(reduction='sum')
         self.lr = lr
         self.opt = optim.Adam(self.net.parameters(), self.lr)
-        self.scheduler = optim.lr_scheduler.ExponentialLR(self.opt, 0.95)
+        # self.scheduler = optim.lr_scheduler.ExponentialLR(self.opt, 0.95)
 
 
         self.lang_enc = lang_enc
@@ -91,7 +91,7 @@ class RunLEARN(object):
             pred += list(batch_pred)
             labels += list(batch_labels)
 
-            self.scheduler.step()
+            # self.scheduler.step()
 
         correct = np.sum([1.0 if x == y else 0.0 for (x, y) in zip(pred, labels)])
         return correct / len(data), loss / len(data)
@@ -106,9 +106,9 @@ class RunLEARN(object):
         actions, langs, lengths, labels = actions.to(self.device), langs.to(self.device), lengths.to(self.device), labels.to(self.device) 
         if training == 1:
             self.opt.zero_grad()
-            # lr = self.lr * (0.95 ** (self.global_step // 10000))
-            # for param_group in self.opt.param_groups:
-            #     param_group['lr'] = lr
+            lr = self.lr * (0.95 ** (self.global_step // 10000))
+            for param_group in self.opt.param_groups:
+                param_group['lr'] = lr
             logits = self.net(actions, langs, lengths)
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)

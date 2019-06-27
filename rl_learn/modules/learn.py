@@ -33,6 +33,11 @@ class LEARN(nn.Module):
         self.gru = nn.GRU(emb_size, d2, num_layers=n_layers, batch_first=True)
         self.concat_mlp = MLP(d1+d2, 2, dropout=dropout)
 
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        nn.init.xavier_uniform_(self.emb.weight)
+
     def forward(self, actions, langs, lengths):
 
         ac_out = self.act_mlp(actions)

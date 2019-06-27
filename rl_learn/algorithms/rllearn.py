@@ -13,16 +13,23 @@ import torch.optim as optim
 import gin
 
 from rl_learn.modules import Policy
-from rl_learn.util import RolloutStorage, GymEnvironment, Checkpointer, logger, Monitor
+from rl_learn.util import RolloutStorage, GymEnvironment
 from scipy.stats import spearmanr
 
 
-@gin.configurable(blacklist=['logdir'])
+def log(str, logdir):
+    print(str)
+    directory = logdir + 'log.txt'
+    with open(directory, 'r') as f:
+        f.write(str)
+    return 
+
+
+@gin.configurable(blacklist=['expt_id', 'descr_id', 'lang_coef'])
 class RunRLLEARN(object):
     def __init__(self,
         logdir,
         log_period,
-        save_period,
         lang_enc,
         expt_id,
         descr_id,
@@ -41,17 +48,12 @@ class RunRLLEARN(object):
         lr=7e-4,
         eps=1e-5,
         max_grad_norm=0.5,
-        mode='paper',
         noise=0.0,
         gpu=True
     ):
         torch.manual_seed(0)
-        self.logdir = logdir
-        self.ckptr = Checkpointer(os.path.join(self.logdir, 'ckpts'))
+        self.logdir = 'train/logs/rllearn/task{}/descr{}/'.format(expt_id, descr_id)
         self.log_period = log_period
-        self.save_period = save_period
-        
-        logger.configure(logdir, ['stdout', 'log'])
 
         self.maxt = maxt
         self.num_steps = num_steps
@@ -94,29 +96,10 @@ class RunRLLEARN(object):
         self.rollouts = RolloutStorage(self.num_steps, self.num_processes, self.env.observation_space.shape,
             self.env.action_space, self.net.recurrent_hidden_state_size)
 
-        self.t, self.t_start = 0, 0
-
-        self.losses = {'tot':[], 'pi':[], 'value':[], 'ent':[]}
-        self.meanlosses = {'tot':[], 'pi':[], 'value':[], 'ent':[]}
-        
+        self.t = 0
+        self.env_rewards = []
 
     def train(self):
-        config = gin.operative_config_str()
-        logger.log("=================== CONFIG ===================")
-        logger.log(config)
-        with open(os.path.join(self.logdir, 'config.gin'), 'w') as f:
-            f.write(config)
-        self.time_start = time.monotonic()
-        if len(self.ckptr.ckpts()) > 0:
-            self.load()
-        if self.t == 0:
-            cstr = config.replace('\n', '  \n')
-            cstr = cstr.replace('#', '\\#')
-            logger.add_text('config', cstr, 0, time.time())
-        if self.maxt and self.t > self.maxt:
-            return
-        if self.save_period:
-            last_save = (self.t // self.save_period) * self.save_period
 
         current_obs = torch.zeros(self.num_processes, *self.env.observation_space.shape)
         # print(current_obs)
@@ -144,6 +127,7 @@ class RunRLLEARN(object):
                 cpu_actions = action.squeeze(1).cpu().numpy()
 
                 obs, reward, done, goal_reached = self.env.step(action)
+                self.env_rewards.append(reward)
                 reward = torch.from_numpy(np.expand_dims(np.stack([reward]), 1)).float()
 
                 masks = torch.FloatTensor([[0.0] if done_ else [1.0] for done_ in [done]])
@@ -166,9 +150,6 @@ class RunRLLEARN(object):
 
                 self.t += self.num_processes
 
-                if self.save_period and (self.t - last_save) >= self.save_period:
-                    self.save()
-                    last_save = self.t
 
             with torch.no_grad():
                 next_value = self.net.get_value(self.rollouts.obs[step],
@@ -180,26 +161,25 @@ class RunRLLEARN(object):
             self.rollouts.after_update()
 
             if j % self.log_period == 0:
-                logger.log("========================|  Timestep: {}  |========================".format(self.t))
-                self.log()
-                # total_num_steps = (j + 1) * self.num_processes * self.num_steps
+                log("========================|  Timestep: {}  |========================".format(self.t), self.logdir)
             
-                # try:
-                #     success = float(self.n_goal_reached) / self.n_episodes
-                # except ZeroDivisionError:
-                #     success = 0.
-                # print ("Timesteps: {}, Goal reached : {} / {}, Success %: {}".format(
-                #     total_num_steps, self.n_goal_reached, self.n_episodes, success))
+                try:
+                    success = float(self.n_goal_reached) / self.n_episodes
+                except ZeroDivisionError:
+                    success = 0.
+                try:
+                    mean_reward = sum(self.env_rewards) / self.n_episodes
+                except ZeroDivisionError:
+                    mean_reward = 0.
+                log("Timesteps: {}, Goal reached : {} / {}, Success %: {}, Mean reward: {}".format(
+                    self.t, self.n_goal_reached, self.n_episodes, success, mean_reward), self.logdir)
 
         if self.lang_coef > 0:
             av_list = np.array(self.env.action_vectors_list)
-            for k in range(len(spearman_corr_coeff_actions)):
+            for k in range(len([0, 1, 2, 3, 4, 5, 11, 12])):
                 sr, _ = spearmanr(self.env.rewards_list, av_list[:, k])
                 print (k, sr)
 
-        if self.t not in self.ckptr.ckpts():
-            self.save()
-        # logger.export_scalars(self.ckptr.format.format(self.t) + '.json')
         self.close()
             
     def update(self, max_step):
@@ -263,54 +243,6 @@ class RunRLLEARN(object):
 
         return value_loss_epoch, action_loss_epoch, dist_entropy_epoch
 
-    def state_dict(self):
-        return {
-            'net': self.net.state_dict(),
-            'opt': self.opt.state_dict(),
-            't':   self.t,
-        }
-
-    def load_state_dict(self, state_dict):
-        self.net.load_state_dict(state_dict['net'])
-        self.opt.load_state_dict(state_dict['opt'])
-        self.t = state_dict['t']
-
-    def save(self):
-        self.ckptr.save(self.state_dict(), self.t)
-
-    def load(self, t=None):
-        self.load_state_dict(self.ckptr.load(t))
-        self.t_start = self.t
-
     def close(self):
         if hasattr(self.env, 'close'):
             self.env.close()
-        logger.reset()
-
-    def log_losses(self):
-        s = 'Losses:  '
-        for ln in ['tot', 'pi', 'value', 'ent']:
-            with torch.no_grad():
-                self.meanlosses[ln].append((sum(self.losses[ln]) / len(self.losses[ln])).cpu().numpy())
-        self.losses = {'tot':[], 'pi':[], 'value':[], 'ent':[]}
-
-    def log(self):
-        with torch.no_grad():
-            logger.logkv('Loss - Total', np.mean(self.meanlosses['tot']))
-            logger.logkv('Loss - Policy', np.mean(self.meanlosses['pi']))
-            logger.logkv('Loss - Value', np.mean(self.meanlosses['value']))
-            logger.logkv('Loss - Entropy', np.mean(self.meanlosses['ent']))
-        self.meanlosses = {'tot':[], 'pi':[], 'value':[], 'ent':[]}
-        # Logging stats...
-        try:
-            success = float(self.n_goal_reached) / self.n_episodes
-        except ZeroDivisionError:
-            success = 0.
-        logger.logkv('timesteps', self.t)
-        logger.logkv('fps', int((self.t - self.t_start) / (time.monotonic() - self.time_start)))
-        logger.logkv('time_elapsed', time.monotonic() - self.time_start)
-        logger.logkv('successes', self.n_goal_reached)
-        logger.logkv('episodes', self.n_episodes)
-        logger.logkv('success rate', success)
-
-        logger.dumpkvs()

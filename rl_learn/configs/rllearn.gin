@@ -1,6 +1,2 @@
 RunRLLEARN.log_period = 100
-RunRLLEARN.save_period = 10000
 RunRLLEARN.lang_enc = "onehot"
-RunRLLEARN.expt_id = 4
-RunRLLEARN.descr_id = 7
-RunRLLEARN.lang_coef = 0

@@ -10,8 +10,6 @@ import pickle
 
 import torch
 
-from rl_learn.util import Checkpointer
-
 from rl_learn.modules import LEARN
 from rl_learn.util.tasks import *
 from rl_learn.util import get_batch_lang_lengths, rgb2gray
@@ -25,7 +23,6 @@ class GymEnvironment(object):
         lang_coeff,
         noise,
         device,
-        mode='paper',
         env_id='MontezumaRevenge-v0',
         screen_width=84,
         screen_height=84,
@@ -37,7 +34,6 @@ class GymEnvironment(object):
         self.descr_id = descr_id
         self.lang_enc = lang_enc
         self.device = device
-        self.mode = mode
         self.lang_coeff = lang_coeff
         self.noise = noise
         self.env = gym.make(env_id)
@@ -166,10 +162,7 @@ class GymEnvironment(object):
 
     @property
     def screen(self):
-        if self.mode == 'paper':
-            return imresize(rgb2gray(self._screen)/255., self.dims)
-        elif self.mode == 'raw':
-            return self._screen
+        return imresize(rgb2gray(self._screen)/255., self.dims)
 
     @property
     def lives(self):
@@ -177,11 +170,8 @@ class GymEnvironment(object):
 
     @property
     def observation_space(self):
-        if self.mode == 'paper':
-            dim1, dim2 = self.dims
-            return spaces.Box(low=0.0, high=1.0, shape=(1, dim1, dim2))
-        elif self.mode == 'raw':
-            return self.env.observation_space
+        dim1, dim2 = self.dims
+        return spaces.Box(low=0.0, high=1.0, shape=(1, dim1, dim2))
 
     @property
     def action_space(self):
@@ -225,10 +215,11 @@ class GymEnvironment(object):
         return self.screen, self.reward, self.terminal, goal_reached
 
     def setup_language_network(self):
-        ckptr = Checkpointer('train/logs/learn/' + self.lang_enc + '/ckpts')
-        save_dict = ckptr.load()
         self.net = LEARN(self.vocab_size, self.env.action_space.n, self.lang_enc)
-        self.net.load_state_dict(save_dict['net'])
+        self.opt = self.opt = optim.Adam(self.net.parameters(), lr=1e-4)
+        ckpt = torch.load('train/logs/learn/{}/net.pkl'.format(self.lang_enc))
+        self.net.load_state_dict(ckpt['net_state_dict'])
+        self.optim.load_state_dict(ckpt['opt_state_dict'])
         self.net.to(self.device)
         self.net.train(False)
         sentence_id = (self.expt_id-1) * 3 + (self.descr_id-1)

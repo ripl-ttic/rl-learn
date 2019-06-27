@@ -1,7 +1,6 @@
 import gin, os, time
 import numpy as np
 from random import shuffle
-from rl_learn.util import Checkpointer, logger
 
 import torch
 import torch.nn as nn
@@ -12,32 +11,31 @@ from rl_learn.modules import LEARN
 from rl_learn.util import Data, get_batch_lang_lengths
 
 
-@gin.configurable(blacklist=['logdir', 'lang_enc'])
+@gin.configurable(blacklist=['lang_enc'])
 class RunLEARN(object):
     def __init__(self,
         logdir,
         lang_enc,
         actions_file,
         data_file,
-        lr=0.0001,
+        lr=1e-4,
         vocab_size=296,
         n_actions=18,
         epochs=50,
         batch_size=32,
         gpu=True
     ):
-        self.logdir = logdir
-        self.ckptr = Checkpointer(os.path.join(self.logdir, 'ckpts'))
+        self.logdir = 'train/logs/learn/{}/'.format(lang_enc)
         self.data = Data(actions_file, data_file, lang_enc, n_actions)
 
         self.device = torch.device("cuda:0" if gpu and torch.cuda.is_available() else "cpu")
         self.net = LEARN(vocab_size, n_actions, lang_enc)
         self.net.to(self.device)
         self.criterion = nn.CrossEntropyLoss()
-        self.opt = optim.Adam(self.net.parameters())
+        self.opt = optim.Adam(self.net.parameters(), self.lr)
         self.lr = lr
+        self.scheduler = optim.ExponentialLR(self.opt, 0.95)
 
-        logger.configure(logdir, ['stdout', 'log'])
 
         self.lang_enc = lang_enc
 
@@ -46,37 +44,13 @@ class RunLEARN(object):
         self.epoch = 0
         self.global_step = 0
 
-    def state_dict(self):
-        return {
-            'net': self.net.state_dict(),
-            'opt': self.opt.state_dict(),
-            'epoch': self.epoch
-        }
-
-    def load_state_dict(self, state_dict):
-        self.net.load_state_dict(state_dict['net'])
-        self.opt.load_state_dict(state_dict['opt'])
-        self.epoch = state_dict['epoch']
-
     def save(self):
-        # print("saving epoch {}".format(self.epoch))
-        self.ckptr.save(self.state_dict(), self.epoch)
-
-    def load(self, epoch=None):
-        self.load_state_dict(self.ckptr.load(epoch))
+        torch.save({
+            'net_state_dict': self.net.state_dict(),
+            'opt_state_dict': self.opt.state_dict()
+        }, self.logdir + 'net.pkl')
 
     def train(self):
-        config = gin.operative_config_str()
-        logger.log("=================== CONFIG ===================")
-        logger.log(config)
-        with open(os.path.join(self.logdir, 'config.gin'), 'w') as f:
-            f.write(config)
-        if len(self.ckptr.ckpts()) > 0:
-            self.load()
-        if self.epoch == 0:
-            cstr = config.replace('\n', '  \n')
-            cstr = cstr.replace('#', '\\#')
-            logger.add_text('config', cstr, 0, time.time())
         if self.epochs and self.epoch > self.epochs:
             return
 
@@ -91,18 +65,15 @@ class RunLEARN(object):
                     self.best_val_acc = self.acc_val
                     self.save()
         except KeyboardInterrupt:
-            logger.log("Caught Ctrl-C. Saving model and exiting...")
-        # if self.epoch not in self.ckptr.ckpts():
-        #     self.save()
+            log("Caught Ctrl-C. Saving model and exiting...")
 
-        logger.reset()
 
     def step(self):
         shuffle(self.data.train_data)
         acc_train, loss_train = self.run_epoch(self.data.train_data, training=1)
         acc_val, loss_val = self.run_epoch(self.data.valid_data, training=0)
         self.epoch += 1
-        self.log(acc_train, loss_train, acc_val, loss_val)
+        self.log_stats(acc_train, loss_train, acc_val, loss_val)
         self.acc_val = acc_val
 
     def run_epoch(self, data, training):
@@ -120,6 +91,8 @@ class RunLEARN(object):
             pred += list(batch_pred)
             labels += list(batch_labels)
 
+            self.scheduler.step()
+
         correct = np.sum([1.0 if x == y else 0.0 for (x, y) in zip(pred, labels)])
         return correct / len(data), loss / len(data)
 
@@ -133,9 +106,9 @@ class RunLEARN(object):
         actions, langs, lengths, labels = actions.to(self.device), langs.to(self.device), lengths.to(self.device), labels.to(self.device) 
         if training == 1:
             self.opt.zero_grad()
-            lr = self.lr * 0.95 ** (self.global_step // 10000)
-            for param_group in self.opt.param_groups:
-                param_group['lr'] = lr
+            # lr = self.lr * (0.95 ** (self.global_step // 10000))
+            # for param_group in self.opt.param_groups:
+            #     param_group['lr'] = lr
             logits = self.net(actions, langs, lengths)
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)
@@ -154,10 +127,16 @@ class RunLEARN(object):
             
         return pred, loss, labels
 
-    def log(self, acc_train, loss_train, acc_val, loss_val):
-        logger.log("========================|  Epoch: {}  |========================".format(self.epoch))
-        logger.logkv('Train acc', acc_train)
-        logger.logkv('Train loss', loss_train)
-        logger.logkv('Valid acc', acc_val)
-        logger.logkv('Valid loss', loss_val)
-        logger.dumpkvs()
+    def log_stats(self, acc_train, loss_train, acc_val, loss_val):
+        log("========================|  Epoch: {}  |========================".format(self.epoch), self.logdir)
+        log('Train acc: {}'.format(acc_train), self.logdir)
+        log('Train loss: {}'.format(loss_train), self.logdir)
+        log('Valid acc: {}'.format(acc_val), self.logdir)
+        log('Valid loss: {}'.format(loss_val), self.logdir)
+
+def log(str, logdir):
+    print(str)
+    directory = logdir + 'log.txt'
+    with open(directory, 'r') as f:
+        f.write(str)
+    return 

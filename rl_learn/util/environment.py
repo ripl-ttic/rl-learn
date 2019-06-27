@@ -172,18 +172,6 @@ class GymEnvironment(object):
             return self._screen
 
     @property
-    def reward_range(self):
-        return self.env.reward_range
-
-    @property
-    def metadata(self):
-        return self.env.metadata
-    
-    @property
-    def spec(self):
-        return self.env.spec
-
-    @property
     def lives(self):
         return self.env.ale.lives()
 
@@ -234,7 +222,7 @@ class GymEnvironment(object):
         if self.terminal:
             self._reset()
 
-        return self.screen, self.reward, self.terminal, {'goal reached': goal_reached}
+        return self.screen, self.reward, self.terminal, goal_reached
 
     def setup_language_network(self):
         ckptr = Checkpointer('train/logs/learn/' + self.lang_enc + '/ckpts')

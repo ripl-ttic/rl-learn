@@ -83,7 +83,6 @@ class RunRLLEARN(object):
             self.device
         )
         self.env.env = self.env.env.unwrapped
-        self.env = Monitor(self.env, logger.get_dir() and os.path.join(logger.get_dir(), str(0)))
         
 
         self.net = Policy(self.env.observation_space.shape, self.env.action_space,
@@ -144,7 +143,7 @@ class RunRLLEARN(object):
 
                 cpu_actions = action.squeeze(1).cpu().numpy()
 
-                obs, reward, done, info = self.env.step(action)
+                obs, reward, done, goal_reached = self.env.step(action)
                 reward = torch.from_numpy(np.expand_dims(np.stack([reward]), 1)).float()
 
                 masks = torch.FloatTensor([[0.0] if done_ else [1.0] for done_ in [done]])
@@ -162,7 +161,7 @@ class RunRLLEARN(object):
                 if done:
                     self.n_episodes += 1
                     self.env.reset()                
-                    if info['goal reached']:
+                    if goal_reached:
                         self.n_goal_reached += 1
 
                 self.t += self.num_processes
@@ -200,7 +199,7 @@ class RunRLLEARN(object):
 
         if self.t not in self.ckptr.ckpts():
             self.save()
-        logger.export_scalars(self.ckptr.format.format(self.t) + '.json')
+        # logger.export_scalars(self.ckptr.format.format(self.t) + '.json')
         self.close()
             
     def update(self, max_step):
@@ -301,10 +300,6 @@ class RunRLLEARN(object):
             logger.logkv('Loss - Policy', np.mean(self.meanlosses['pi']))
             logger.logkv('Loss - Value', np.mean(self.meanlosses['value']))
             logger.logkv('Loss - Entropy', np.mean(self.meanlosses['ent']))
-            logger.add_scalar('loss/total',   np.mean(self.meanlosses['tot']), self.t, time.time())
-            logger.add_scalar('loss/policy',  np.mean(self.meanlosses['pi']), self.t, time.time())
-            logger.add_scalar('loss/value',   np.mean(self.meanlosses['value']), self.t, time.time())
-            logger.add_scalar('loss/entropy', np.mean(self.meanlosses['ent']), self.t, time.time())
         self.meanlosses = {'tot':[], 'pi':[], 'value':[], 'ent':[]}
         # Logging stats...
         try:
@@ -314,8 +309,6 @@ class RunRLLEARN(object):
         logger.logkv('timesteps', self.t)
         logger.logkv('fps', int((self.t - self.t_start) / (time.monotonic() - self.time_start)))
         logger.logkv('time_elapsed', time.monotonic() - self.time_start)
-        logger.logkv('mean episode length', np.mean(self.env.episode_lengths))
-        logger.logkv('mean episode reward', np.mean(self.env.episode_rewards))
         logger.logkv('successes', self.n_goal_reached)
         logger.logkv('episodes', self.n_episodes)
         logger.logkv('success rate', success)

@@ -216,16 +216,16 @@ class RunRLLEARN(object):
                 surr2 = torch.clamp(ratio, 1.0 - self.clip_param,
                                            1.0 + self.clip_param) * adv_targ
                 action_loss = -torch.min(surr1, surr2).mean()
-                self.losses['pi'].append(action_loss)
+                # self.losses['pi'].append(action_loss)
 
                 value_loss = F.mse_loss(return_batch, values)
-                self.losses['value'].append(value_loss)
+                # self.losses['value'].append(value_loss)
 
-                self.losses['ent'].append(dist_entropy)
+                # self.losses['ent'].append(dist_entropy)
 
                 self.opt.zero_grad()
                 total_loss = value_loss * self.v_loss_coef + action_loss - dist_entropy * self.entropy_coef
-                self.losses['tot'].append(total_loss)
+                # self.losses['tot'].append(total_loss)
                 total_loss.backward()
                 nn.utils.clip_grad_norm_(self.net.parameters(),
                                          self.max_grad_norm)
@@ -235,7 +235,7 @@ class RunRLLEARN(object):
                 action_loss_epoch += action_loss.item()
                 dist_entropy_epoch += dist_entropy.item()
 
-            self.log_losses()
+            # self.log_losses()
 
         num_up = self.ppo_epoch * self.batch_size
 

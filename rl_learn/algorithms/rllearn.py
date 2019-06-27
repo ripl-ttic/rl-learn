@@ -25,7 +25,7 @@ def log(str, logdir):
     return 
 
 
-@gin.configurable(blacklist=['expt_id', 'descr_id', 'lang_coef'])
+@gin.configurable(blacklist=['lang_enc', 'expt_id', 'descr_id', 'lang_coef'])
 class RunRLLEARN(object):
     def __init__(self,
         logdir,

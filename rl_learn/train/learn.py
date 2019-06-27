@@ -14,5 +14,5 @@ if __name__=='__main__':
         config = args.gin_config
     load_gin_configs([config], args.gin_bindings)
 
-    learn = RunLEARN(args.logdir, args.lang_enc)
+    learn = RunLEARN(args.lang_enc)
     learn.train()

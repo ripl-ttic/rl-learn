@@ -7,6 +7,7 @@ if __name__=='__main__':
     parser.add_argument('--expt_id', type=int, help='task id')
     parser.add_argument('--descr_id', type=int, help='description id')
     parser.add_argument('--lang_coef', type=float, help='lang coef')
+    parser.add_argument('--lang_enc', type=str, default='onehot', help='lang enc')
     parser.add_argument('-c', '--gin_config', type=str, help='gin config')
     parser.add_argument('-b', '--gin_bindings', nargs='+', help='gin bindings to overwrite config')
     args = parser.parse_args()
@@ -16,5 +17,5 @@ if __name__=='__main__':
         config = args.gin_config
     load_gin_configs([config], args.gin_bindings)
 
-    learn = RunRLLEARN(args.expt_id, args.descr_id)
+    learn = RunRLLEARN(args.lang_enc, args.expt_id, args.descr_id, args.lang_coef)
     learn.train()

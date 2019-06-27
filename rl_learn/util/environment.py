@@ -9,6 +9,7 @@ from PIL import Image
 import pickle
 
 import torch
+import torch.optim as optim
 
 from rl_learn.modules import LEARN
 from rl_learn.util.tasks import *
@@ -216,7 +217,7 @@ class GymEnvironment(object):
 
     def setup_language_network(self):
         self.net = LEARN(self.vocab_size, self.env.action_space.n, self.lang_enc)
-        self.opt = self.opt = optim.Adam(self.net.parameters(), lr=1e-4)
+        self.opt = optim.Adam(self.net.parameters(), lr=1e-4)
         ckpt = torch.load('train/logs/learn/{}/net.pkl'.format(self.lang_enc))
         self.net.load_state_dict(ckpt['net_state_dict'])
         self.optim.load_state_dict(ckpt['opt_state_dict'])

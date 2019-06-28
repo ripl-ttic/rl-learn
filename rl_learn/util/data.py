@@ -25,7 +25,7 @@ class Data(object):
         self.load_data()
         self.load_actions()
         self.split_data()
-        # self.create_data()
+        self.create_data()
 
     def load_actions(self):
         self.clip_to_actions = {}

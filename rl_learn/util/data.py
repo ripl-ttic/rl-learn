@@ -37,7 +37,7 @@ class Data(object):
                 actions = list(map(eval, parts[1:]))
                 self.clip_to_actions[clip_id] = actions
 
-    def compute_nonzero_actions(self, clip_id, r, s):
+    def compute_nonzero_actions(self, clip_id):
         clip_id = clip_id.strip()
         # r, s = min(r, s), max(r, s)
         actions = self.clip_to_actions[clip_id]#[r:s]
@@ -123,7 +123,7 @@ class Data(object):
             # r = np.random.choice(self.traj_len)
             # s = np.random.choice(self.traj_len)
             # r, s = min(r, s), max(r, s)
-            if self.compute_nonzero_actions(pool[clip]['clip_id'], r, s) >= 5:
+            if self.compute_nonzero_actions(pool[clip]['clip_id']) >= 5:
                 data_pt_cur = pool[clip]
             else:
                 continue

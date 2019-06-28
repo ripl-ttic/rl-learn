@@ -95,8 +95,8 @@ class Data(object):
         self.valid_data = list(zip(self.action_list_valid, self.lang_list_valid, \
             self.labels_list_valid))
 
-        # self.mean = np.mean(self.action_list_train, axis=-1)
-        # self.std = np.std(self.action_list_train, axis=-1)
+        self.mean = np.mean(self.action_list_train, axis=-1)
+        self.std = np.std(self.action_list_train, axis=-1)
 
     def get_data_pt_cond(self, data_pt):
         cond = None
@@ -152,7 +152,7 @@ class Data(object):
                 lang_list.append(cond_alt)
                 labels_list.append(0)
             else:
-                action_vector_alt = np.random.randint(0, self.n_actions, size=self.traj_len)
+                action_vector_alt = np.random.randint(0, self.n_actions, size=self.traj_len // 2)
                 # action_vector_alt /= np.sum(action_vector_alt)
                 action_list.append(action_vector_alt)
                 lang_list.append(cond)

@@ -119,7 +119,7 @@ class Data(object):
         all_frames = []
         for i in range(n):
             clip = np.random.choice(len(pool))
-            # clip_no = eval((pool[clip]['clip_id'].split('_')[-1])[:-4])
+            clip_no = eval((pool[clip]['clip_id'].split('_')[-1])[:-4])
             # r = np.random.choice(self.traj_len)
             # s = np.random.choice(self.traj_len)
             # r, s = min(r, s), max(r, s)

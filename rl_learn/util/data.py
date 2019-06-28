@@ -122,6 +122,9 @@ class Data(object):
             clip_no = eval((pool[clip]['clip_id'].split('_')[-1])[:-4])
             r = np.random.choice(self.traj_len // 2)
             s = r + self.traj_len // 2
+
+            print(r)
+            print(s)
             # r, s = min(r, s), max(r, s)
             if self.compute_nonzero_actions(pool[clip]['clip_id']) >= 5:
                 data_pt_cur = pool[clip]

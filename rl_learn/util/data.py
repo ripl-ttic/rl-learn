@@ -134,7 +134,7 @@ class Data(object):
                     break
 
             cond = self.get_data_pt_cond(pool[clip])
-            clip_id = (pool[clip]['clip_id']).split()
+            clip_id = (pool[clip]['clip_id']).strip()
 
 
             # action_vector = self.create_action_vector(pool[clip]['clip_id'], r, s)

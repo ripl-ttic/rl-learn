@@ -119,14 +119,14 @@ class Data(object):
         all_frames = []
         for i in range(n):
             clip = np.random.choice(len(pool))
-            clip_no = eval((pool[clip]['clip_id'].split('_')[-1])[:-4])
-            r = np.random.choice(self.traj_len)
-            s = np.random.choice(self.traj_len)
-            r, s = min(r, s), max(r, s)
-            if self.compute_nonzero_actions(pool[clip]['clip_id'], r, s) >= 5:
-                data_pt_cur = pool[clip]
-            else:
-                continue
+            # clip_no = eval((pool[clip]['clip_id'].split('_')[-1])[:-4])
+            # r = np.random.choice(self.traj_len)
+            # s = np.random.choice(self.traj_len)
+            # r, s = min(r, s), max(r, s)
+            # if self.compute_nonzero_actions(pool[clip]['clip_id'], r, s) >= 5:
+            #     data_pt_cur = pool[clip]
+            # else:
+            #     continue
 
             while True:
                 clip_alt = np.random.choice(len(pool))
@@ -134,21 +134,24 @@ class Data(object):
                     break
 
             cond = self.get_data_pt_cond(pool[clip])
+            clip_id = (pool[clip]['clip_id']).split()
 
-            action_vector = self.create_action_vector(pool[clip]['clip_id'], r, s)
 
-            action_list.append(action_vector)
+            # action_vector = self.create_action_vector(pool[clip]['clip_id'], r, s)
+            actions = self.clip_to_actions[clip_id]
+
+            action_list.append(actions)
             lang_list.append(cond)
             labels_list.append(1)
 
             if np.random.random() < 0.5:
                 cond_alt = self.get_data_pt_cond(pool[clip_alt])
-                action_list.append(action_vector)
+                action_list.append(actions)
                 lang_list.append(cond_alt)
                 labels_list.append(0)
             else:
-                action_vector_alt = np.random.random(self.n_actions)
-                action_vector_alt /= np.sum(action_vector_alt)
+                action_vector_alt = np.random.randint(0, self.n_actions, size=self.traj_len)
+                # action_vector_alt /= np.sum(action_vector_alt)
                 action_list.append(action_vector_alt)
                 lang_list.append(cond)
                 labels_list.append(0)

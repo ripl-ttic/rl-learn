@@ -12,10 +12,9 @@ from rl_learn.modules import LEARN
 from rl_learn.util import Data, get_batch_lang_lengths
 
 
-@gin.configurable(blacklist=['lang_enc'])
+@gin.configurable
 class RunLEARN(object):
     def __init__(self,
-        lang_enc,
         actions_file,
         data_file,
         lr=1e-4,
@@ -25,13 +24,13 @@ class RunLEARN(object):
         batch_size=32,
         gpu=True
     ):
-        self.logdir = 'train/logs/learn/{}/'.format(lang_enc)
+        self.logdir = 'train/logs/learn/onehot/'
         self.data = Data(actions_file, data_file, lang_enc, n_actions)
 
         open(logdir + 'log.txt', 'w').close()
 
         self.device = torch.device("cuda:0" if gpu and torch.cuda.is_available() else "cpu")
-        self.net = LEARN(vocab_size, n_actions, lang_enc)
+        self.net = LEARN(vocab_size, n_actions)
         self.net.to(self.device)
         self.criterion = nn.CrossEntropyLoss(reduction='sum')
         self.lr = lr
@@ -39,7 +38,6 @@ class RunLEARN(object):
         # self.scheduler = optim.lr_scheduler.ExponentialLR(self.opt, 0.95)
 
 
-        self.lang_enc = lang_enc
 
         self.epochs = epochs
         self.batch_size = batch_size
@@ -101,7 +99,7 @@ class RunLEARN(object):
     def run_batch(self, batch_data, training):
         actions, langs, labels = zip(*batch_data)
         langs = np.asarray(langs)
-        langs, lengths = get_batch_lang_lengths(langs, self.lang_enc)
+        langs, lengths = get_batch_lang_lengths(langs)
         actions = torch.FloatTensor(actions)
         langs, lengths = torch.FloatTensor(langs), torch.LongTensor(lengths)
         labels = torch.LongTensor(labels)

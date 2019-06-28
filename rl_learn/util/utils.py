@@ -21,31 +21,16 @@ def pad_seq_onehot(seq, length):
     result[0:seq.shape[0]] = seq
     return result
 
-def get_batch_lang_lengths(lang_list, lang_enc):
-    if lang_enc == 'onehot':
-        langs = []
-        lengths = []
-        for i, l in enumerate(lang_list):
-            lengths.append(len(l))
-            langs.append(np.array(pad_seq_onehot(l, 20)))
-        
-        langs = np.array(langs)
-        lengths = np.clip(np.array(lengths), 0, 20)
-        return langs, lengths
-    elif lang_enc == 'glove':
-        langs = []
-        lengths = []
-        for i, l in enumerate(lang_list):
-            lengths.append(len(l))
-            langs.append(np.array(pad_seq_feature(l, 20)))
-        
-        langs = np.array(langs)
-        lengths = np.clip(np.array(lengths), 0, 20)
-        return langs, lengths
-    elif lang_enc == 'infersent':
-        return np.asarray(lang_list), np.array([])
-    else:
-        raise NotImplementedError
+def get_batch_lang_lengths(lang_list):
+    langs = []
+    lengths = []
+    for i, l in enumerate(lang_list):
+        lengths.append(len(l))
+        langs.append(np.array(pad_seq_onehot(l, 20)))
+    
+    langs = np.array(langs)
+    lengths = np.clip(np.array(lengths), 0, 20)
+    return langs, lengths
 
 def rgb2gray(image):
     return np.dot(image[...,:3], [0.299, 0.587, 0.114])

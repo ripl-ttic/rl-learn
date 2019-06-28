@@ -28,10 +28,9 @@ def log(str, logdir):
     return 
 
 
-@gin.configurable(blacklist=['lang_enc', 'expt_id', 'descr_id', 'lang_coef'])
+@gin.configurable(blacklist=['expt_id', 'descr_id', 'lang_coef'])
 class RunRLLEARN(object):
     def __init__(self,
-        lang_enc,
         expt_id,
         descr_id,
         lang_coef,
@@ -53,7 +52,6 @@ class RunRLLEARN(object):
         noise=0.0,
         gpu=True
     ):
-        torch.manual_seed(0)
         self.logdir = 'train/logs/rllearn/task{}/descr{}/'.format(expt_id, descr_id)
         self.log_period = log_period
 
@@ -62,7 +60,6 @@ class RunRLLEARN(object):
         self.maxt = maxt
         self.num_steps = num_steps
         self.num_processes = num_processes
-        self.lang_enc = lang_enc
         self.lang_coef = lang_coef
         self.gamma = gamma
         self.tau = tau
@@ -83,7 +80,6 @@ class RunRLLEARN(object):
             expt_id,
             descr_id,
             self.gamma,
-            self.lang_enc,
             self.lang_coef,
             noise,
             self.device

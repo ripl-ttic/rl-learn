@@ -20,7 +20,6 @@ class GymEnvironment(object):
         expt_id,
         descr_id,
         gamma,
-        lang_enc,
         lang_coeff,
         noise,
         device,
@@ -33,7 +32,6 @@ class GymEnvironment(object):
     ):
         self.expt_id = expt_id
         self.descr_id = descr_id
-        self.lang_enc = lang_enc
         self.device = device
         self.lang_coeff = lang_coeff
         self.noise = noise
@@ -216,16 +214,16 @@ class GymEnvironment(object):
         return self.screen, self.reward, self.terminal, goal_reached
 
     def setup_language_network(self):
-        self.net = LEARN(self.vocab_size, self.env.action_space.n, self.lang_enc)
+        self.net = LEARN(self.vocab_size, self.env.action_space.n)
         self.opt = optim.Adam(self.net.parameters(), lr=1e-4)
-        ckpt = torch.load('train/logs/learn/{}/net.pkl'.format(self.lang_enc))
+        ckpt = torch.load('train/logs/learn/onehot/net.pkl')
         self.net.load_state_dict(ckpt['net_state_dict'])
         self.opt.load_state_dict(ckpt['opt_state_dict'])
         self.net.to(self.device)
         self.net.train(False)
         sentence_id = (self.expt_id-1) * 3 + (self.descr_id-1)
         lang_data = pickle.load(open('data/test_lang_data.pkl', 'rb'), encoding='bytes')
-        self.lang = lang_data[sentence_id][self.lang_enc]
+        self.lang = lang_data[sentence_id]['onehot']
 
     def compute_language_reward(self):
         if self.n_steps < 2:
@@ -235,7 +233,7 @@ class GymEnvironment(object):
             action_list = np.array(self.action_vector)
             if s > 0:
                 action_list /= s
-            lang_list, length_list = get_batch_lang_lengths([self.lang], self.lang_enc)
+            lang_list, length_list = get_batch_lang_lengths([self.lang])
             
             action_list = torch.from_numpy(action_list).float().unsqueeze(0).to(self.device)
             lang_list = torch.from_numpy(lang_list).float().to(self.device)

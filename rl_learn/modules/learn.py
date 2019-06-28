@@ -14,7 +14,6 @@ class LEARN(nn.Module):
     def __init__(self, 
         vocab_size,
         n_actions,
-        lang_enc,
         n_layers=2,
         emb_size=50,
         infersent_emb_size=4096,
@@ -23,11 +22,9 @@ class LEARN(nn.Module):
         d2=128
     ):
         super(LEARN, self).__init__()
-        self.lang_enc = lang_enc
 
         self.act_mlp = MLP(n_actions, d1)
 
-        self.infersent = nn.Linear(infersent_emb_size, d2)
         self.emb = nn.Embedding(vocab_size, emb_size)
 
         self.gru = nn.GRU(emb_size, d2, num_layers=n_layers, batch_first=True)
@@ -41,19 +38,15 @@ class LEARN(nn.Module):
     def forward(self, actions, langs, lengths):
 
         ac_out = self.act_mlp(actions)
-        if self.lang_enc == "onehot":
-            langs = langs.long()
-            langs = self.emb(langs)
+        langs = langs.long()
+        langs = self.emb(langs)
 
-        if self.lang_enc == "infersent":
-            text_out = self.infersent(langs)
-        else:
-            packed_langs = pack_padded_sequence(langs, lengths.cpu().numpy(), batch_first=True, enforce_sorted=False)
+        packed_langs = pack_padded_sequence(langs, lengths.cpu().numpy(), batch_first=True, enforce_sorted=False)
 
-            packed_langs = packed_langs.float()
-            packed_out, (_,_) = self.gru(packed_langs)
-            text_out, _ = pad_packed_sequence(packed_out, batch_first=True)
-            text_out = torch.mean(text_out, 1)
+        packed_langs = packed_langs.float()
+        packed_out, (_,_) = self.gru(packed_langs)
+        text_out, _ = pad_packed_sequence(packed_out, batch_first=True)
+        text_out = torch.mean(text_out, 1)
 
         out = torch.cat((text_out, ac_out), 1)
 

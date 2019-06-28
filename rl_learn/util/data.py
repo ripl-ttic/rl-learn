@@ -25,7 +25,7 @@ class Data(object):
         self.load_data()
         self.load_actions()
         self.split_data()
-        self.create_data()
+        # self.create_data()
 
     def load_actions(self):
         self.clip_to_actions = {}
@@ -158,4 +158,5 @@ class Data(object):
         lang_list = np.array(lang_list)
         labels_list = np.array(labels_list)
         return action_list, lang_list, labels_list, all_frames
+
 

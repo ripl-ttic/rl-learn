@@ -120,8 +120,8 @@ class Data(object):
         for i in range(n):
             clip = np.random.choice(len(pool))
             clip_no = eval((pool[clip]['clip_id'].split('_')[-1])[:-4])
-            # r = np.random.choice(self.traj_len)
-            # s = np.random.choice(self.traj_len)
+            r = np.random.choice(self.traj_len // 2)
+            s = r + self.traj_len // 2
             # r, s = min(r, s), max(r, s)
             if self.compute_nonzero_actions(pool[clip]['clip_id']) >= 5:
                 data_pt_cur = pool[clip]
@@ -138,7 +138,7 @@ class Data(object):
 
 
             # action_vector = self.create_action_vector(pool[clip]['clip_id'], r, s)
-            actions = self.clip_to_actions[clip_id]
+            actions = self.clip_to_actions[clip_id][r:s]
 
             action_list.append(actions)
             lang_list.append(cond)

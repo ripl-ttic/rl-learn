@@ -142,6 +142,7 @@ class Data(object):
 
             # action_vector = self.create_action_vector(pool[clip]['clip_id'], r, s)
             actions = self.clip_to_actions[clip_id][r:s]
+            print(actions)
 
             action_list.append(actions)
             lang_list.append(cond)

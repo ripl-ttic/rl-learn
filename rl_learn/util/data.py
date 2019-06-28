@@ -39,8 +39,8 @@ class Data(object):
 
     def compute_nonzero_actions(self, clip_id, r, s):
         clip_id = clip_id.strip()
-        r, s = min(r, s), max(r, s)
-        actions = self.clip_to_actions[clip_id][r:s]
+        # r, s = min(r, s), max(r, s)
+        actions = self.clip_to_actions[clip_id]#[r:s]
         n_nonzero = sum([1 if (a>=2 and a<=5) else 0 for a in actions])
         return n_nonzero
 
@@ -123,10 +123,10 @@ class Data(object):
             # r = np.random.choice(self.traj_len)
             # s = np.random.choice(self.traj_len)
             # r, s = min(r, s), max(r, s)
-            # if self.compute_nonzero_actions(pool[clip]['clip_id'], r, s) >= 5:
-            #     data_pt_cur = pool[clip]
-            # else:
-            #     continue
+            if self.compute_nonzero_actions(pool[clip]['clip_id'], r, s) >= 5:
+                data_pt_cur = pool[clip]
+            else:
+                continue
 
             while True:
                 clip_alt = np.random.choice(len(pool))

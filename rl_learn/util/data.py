@@ -8,20 +8,8 @@ import gin
 
 @gin.configurable
 class Data(object):
-    def __init__(self,
-        actions_file,
-        data_file,
-        lang_enc,
-        n_actions,
-        n_data=100000,
-        traj_len=150
-    ):
-        self.actions_file = actions_file
-        self.data_file = data_file
-        self.n_data = n_data
-        self.lang_enc = lang_enc
-        self.traj_len = traj_len
-        self.n_actions = n_actions
+    def __init__(self, args):
+        self.args = args
         self.load_data()
         self.load_actions()
         self.split_data()
@@ -29,7 +17,7 @@ class Data(object):
 
     def load_actions(self):
         self.clip_to_actions = {}
-        with open(self.actions_file) as f:
+        with open(self.args.actions_file) as f:
             for line in f.readlines():
                 line = line.strip()
                 parts = line.split()
@@ -37,10 +25,10 @@ class Data(object):
                 actions = list(map(eval, parts[1:]))
                 self.clip_to_actions[clip_id] = actions
 
-    def compute_nonzero_actions(self, clip_id):
+    def compute_nonzero_actions(self, clip_id, r, s):
         clip_id = clip_id.strip()
-        # r, s = min(r, s), max(r, s)
-        actions = self.clip_to_actions[clip_id]#[r:s]
+        r, s = min(r, s), max(r, s)
+        actions = self.clip_to_actions[clip_id][r:s]
         n_nonzero = sum([1 if (a>=2 and a<=5) else 0 for a in actions])
         return n_nonzero
 
@@ -49,14 +37,14 @@ class Data(object):
         r, s = min(r, s), max(r, s)
         actions = self.clip_to_actions[clip_id][r:s]
         action_vector = []
-        for i in range(self.n_actions):
+        for i in range(N_ACTIONS):
             action_vector.append(sum(map(lambda x:1. if x == i else 0., actions)))
         action_vector = np.array(action_vector)
         action_vector /= np.sum(action_vector)
         return action_vector
 
     def load_data(self):
-        self.data = pickle.load(open(self.data_file, 'rb'), encoding='bytes')
+        self.data = pickle.load(open(self.args.data_file, 'rb'), encoding='bytes')
 
     def split_data(self):
         self.train_pool = []
@@ -81,8 +69,8 @@ class Data(object):
 
     def create_data(self):
         self.valid_prob = 0.2
-        n_valid_data = int(self.n_data * self.valid_prob)
-        n_train_data = self.n_data - n_valid_data
+        n_valid_data = int(self.args.n_data * self.valid_prob)
+        n_train_data = self.args.n_data - n_valid_data
 
         self.action_list_train, self.lang_list_train, \
             self.labels_list_train, all_train_frames = \
@@ -100,11 +88,11 @@ class Data(object):
 
     def get_data_pt_cond(self, data_pt):
         cond = None
-        if self.lang_enc == 'onehot':
+        if self.args.lang_enc == 'onehot':
             cond = data_pt['onehot']
-        elif self.lang_enc == 'glove':
+        elif self.args.lang_enc == 'glove':
             cond = data_pt['glove']
-        elif self.lang_enc == 'infersent':
+        elif self.args.lang_enc == 'infersent':
             cond = data_pt['infersent']
         else:
             raise NotImplementedError
@@ -117,14 +105,13 @@ class Data(object):
         elmo_list = []
         labels_list = []
         all_frames = []
-        for i in range(3 * n):
+        for i in range(n):
             clip = np.random.choice(len(pool))
             clip_no = eval((pool[clip]['clip_id'].split('_')[-1])[:-4])
-            r = np.random.choice(self.traj_len // 3)
-            s = r + self.traj_len // 3
-
-            # r, s = min(r, s), max(r, s)
-            if self.compute_nonzero_actions(pool[clip]['clip_id']) >= 5:
+            r = np.random.choice(TRAJ_LEN)
+            s = np.random.choice(TRAJ_LEN)
+            r, s = min(r, s), max(r, s)
+            if self.compute_nonzero_actions(pool[clip]['clip_id'], r, s) >= 5:
                 data_pt_cur = pool[clip]
             else:
                 continue
@@ -135,12 +122,10 @@ class Data(object):
                     break
 
             cond = self.get_data_pt_cond(pool[clip])
-            clip_id = (pool[clip]['clip_id']).strip()
-
 
             # action_vector = self.create_action_vector(pool[clip]['clip_id'], r, s)
+            clip_id = pool[clip]['clip_id'].strip()
             actions = self.clip_to_actions[clip_id][r:s]
-            # print(actions)
 
             action_list.append(actions)
             lang_list.append(cond)
@@ -148,12 +133,12 @@ class Data(object):
 
             if np.random.random() < 0.5:
                 cond_alt = self.get_data_pt_cond(pool[clip_alt])
-                action_list.append(actions)
+                action_list.append(action_vector)
                 lang_list.append(cond_alt)
                 labels_list.append(0)
             else:
-                action_vector_alt = np.random.randint(0, self.n_actions, size=self.traj_len // 3)
-                # action_vector_alt /= np.sum(action_vector_alt)
+                action_vector_alt = np.random.random(N_ACTIONS)
+                action_vector_alt /= np.sum(action_vector_alt)
                 action_list.append(action_vector_alt)
                 lang_list.append(cond)
                 labels_list.append(0)
@@ -163,5 +148,3 @@ class Data(object):
         lang_list = np.array(lang_list)
         labels_list = np.array(labels_list)
         return action_list, lang_list, labels_list, all_frames
-
-

@@ -35,17 +35,18 @@ class LEARN(nn.Module):
     def reset_parameters(self):
         nn.init.xavier_uniform_(self.emb.weight)
 
-    def forward(self, actions, langs, lengths):
-        actions = actions.unsqueeze(-1)
-        act_out, _ = self.act_gru(actions)
+    def forward(self, actions, act_lengths, langs, lang_lengths):
+        packed_acts = pack_padded_sequence(actions, act_lengths.cpu().numpy(), batch_first=True, enforce_sorted=False)
+        act_out, _ = self.act_gru(packed_acts)
         act_out = torch.mean(act_out, 1)
+
         langs = langs.long()
         langs = self.emb(langs)
 
-        packed_langs = pack_padded_sequence(langs, lengths.cpu().numpy(), batch_first=True, enforce_sorted=False)
+        packed_langs = pack_padded_sequence(langs, langlengths.cpu().numpy(), batch_first=True, enforce_sorted=False)
 
         packed_langs = packed_langs.float()
-        packed_out, (_,_) = self.gru(packed_langs)
+        packed_out, _ = self.gru(packed_langs)
         text_out, _ = pad_packed_sequence(packed_out, batch_first=True)
         text_out = torch.mean(text_out, 1)
 

@@ -99,17 +99,19 @@ class RunLEARN(object):
     def run_batch(self, batch_data, training):
         actions, langs, labels = zip(*batch_data)
         langs = np.asarray(langs)
-        langs, lengths = get_batch_lang_lengths(langs)
-        actions = torch.FloatTensor(actions)
-        langs, lengths = torch.FloatTensor(langs), torch.LongTensor(lengths)
+        actions, act_lengths = get_batch_lang_lengths(actions)
+        langs, lang_lengths = get_batch_lang_lengths(langs)
+        actions, act_lengths = torch.FloatTensor(actions), torch.LongTensor(act_lengths)
+        langs, lang_lengths = torch.FloatTensor(langs), torch.LongTensor(lang_lengths)
+        actions = actions.unsqueeze(-1)
         labels = torch.LongTensor(labels)
-        actions, langs, lengths, labels = actions.to(self.device), langs.to(self.device), lengths.to(self.device), labels.to(self.device) 
+        actions, act_lengths, langs, lang_lengths, labels = actions.to(self.device), act_lengths.to(self.device), langs.to(self.device), lang_lengths.to(self.device), labels.to(self.device) 
         if training == 1:
             self.opt.zero_grad()
             lr = self.lr * (0.95 ** (self.global_step // 10000))
             for param_group in self.opt.param_groups:
                 param_group['lr'] = lr
-            logits = self.net(actions, langs, lengths)
+            logits = self.net(actions, act_lengths, langs, lang_lengths)
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)
 
@@ -120,7 +122,7 @@ class RunLEARN(object):
 
         else:
             self.net.train(False)
-            logits = self.net(actions, langs, lengths)
+            logits = self.net(actions, act_lengths, langs, lang_lengths)
             loss = self.criterion(logits, labels)
             pred = logits.argmax(dim=1)
             self.net.train(True)

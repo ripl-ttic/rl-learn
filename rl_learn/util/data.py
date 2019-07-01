@@ -152,6 +152,7 @@ class Data(object):
                 labels_list.append(0)
             else:
                 x = np.random.choice(self.traj_len)
+                x = np.clip(x, 1, self.traj_len)
                 action_vector_alt = np.random.randint(0, 18, size=x)
                 # action_vector_alt /= np.sum(action_vector_alt)
                 action_list.append(action_vector_alt)

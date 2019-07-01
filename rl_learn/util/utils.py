@@ -32,7 +32,7 @@ def get_batch_lang_lengths(lang_list):
     lengths = np.clip(np.array(lengths), 0, 20)
     return langs, lengths
 
-def get_batch_act_lengths(lang_list):
+def get_batch_act_lengths(act_list):
     acts = []
     lengths = []
     for i, l in enumerate(act_list):

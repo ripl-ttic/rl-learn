@@ -25,7 +25,7 @@ class RunLEARN(object):
         gpu=True
     ):
         self.logdir = 'train/logs/learn/onehot/'
-        self.data = Data(actions_file, data_file, lang_enc, n_actions)
+        self.data = Data(actions_file, data_file, "onehot", n_actions)
 
         open(logdir + 'log.txt', 'w').close()
 

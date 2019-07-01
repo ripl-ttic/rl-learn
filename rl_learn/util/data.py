@@ -145,7 +145,7 @@ class Data(object):
 
             if np.random.random() < 0.5:
                 cond_alt = self.get_data_pt_cond(pool[clip_alt])
-                action_list.append(action_vector)
+                action_list.append(actions)
                 lang_list.append(cond_alt)
                 labels_list.append(0)
             else:

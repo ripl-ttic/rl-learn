@@ -121,8 +121,8 @@ class Data(object):
         for i in range(n):
             clip = np.random.choice(len(pool))
             clip_no = eval((pool[clip]['clip_id'].split('_')[-1])[:-4])
-            r = np.random.choice(TRAJ_LEN)
-            s = np.random.choice(TRAJ_LEN)
+            r = np.random.choice(self.traj_len)
+            s = np.random.choice(self.traj_len)
             r, s = min(r, s), max(r, s)
             if self.compute_nonzero_actions(pool[clip]['clip_id'], r, s) >= 5:
                 data_pt_cur = pool[clip]
@@ -150,7 +150,7 @@ class Data(object):
                 lang_list.append(cond_alt)
                 labels_list.append(0)
             else:
-                x = np.random.choice(TRAJ_LEN)
+                x = np.random.choice(self.traj_len)
                 action_vector_alt = np.random.randint(0, 18, size=x)
                 # action_vector_alt /= np.sum(action_vector_alt)
                 action_list.append(action_vector_alt)

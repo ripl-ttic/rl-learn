@@ -99,8 +99,8 @@ class RunLEARN(object):
     def run_batch(self, batch_data, training):
         actions, langs, labels = zip(*batch_data)
         langs = np.asarray(langs)
-        actions, act_lengths = get_batch_lang_lengths(actions)
-        langs, lang_lengths = get_batch_act_lengths(langs)
+        actions, act_lengths = get_batch_act_lengths(actions)
+        langs, lang_lengths = get_batch_lang_lengths(langs)
         actions, act_lengths = torch.FloatTensor(actions), torch.LongTensor(act_lengths)
         langs, lang_lengths = torch.FloatTensor(langs), torch.LongTensor(lang_lengths)
         actions = actions.unsqueeze(-1)

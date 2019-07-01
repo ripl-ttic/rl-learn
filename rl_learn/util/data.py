@@ -117,11 +117,11 @@ class Data(object):
         elmo_list = []
         labels_list = []
         all_frames = []
-        for i in range(n):
+        for i in range(3 * n):
             clip = np.random.choice(len(pool))
             clip_no = eval((pool[clip]['clip_id'].split('_')[-1])[:-4])
-            r = np.random.choice(self.traj_len // 2)
-            s = r + self.traj_len // 2
+            r = np.random.choice(self.traj_len // 3)
+            s = r + self.traj_len // 3
 
             # r, s = min(r, s), max(r, s)
             if self.compute_nonzero_actions(pool[clip]['clip_id']) >= 5:
@@ -152,7 +152,7 @@ class Data(object):
                 lang_list.append(cond_alt)
                 labels_list.append(0)
             else:
-                action_vector_alt = np.random.randint(0, self.n_actions, size=self.traj_len // 2)
+                action_vector_alt = np.random.randint(0, self.n_actions, size=self.traj_len // 3)
                 # action_vector_alt /= np.sum(action_vector_alt)
                 action_list.append(action_vector_alt)
                 lang_list.append(cond)

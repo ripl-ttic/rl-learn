@@ -36,7 +36,9 @@ class LEARN(nn.Module):
         nn.init.xavier_uniform_(self.emb.weight)
 
     def forward(self, actions, act_lengths, langs, lang_lengths):
-        print(min(act_lengths))
+        if min(act_lengths) == 0:
+            print(actions)
+            print(act_lengths)
         packed_acts = pack_padded_sequence(actions, act_lengths.cpu().numpy(), batch_first=True, enforce_sorted=False)
         packed_act_out, _ = self.act_gru(packed_acts)
         act_out, _ = pad_packed_sequence(packed_act_out, batch_first=True)

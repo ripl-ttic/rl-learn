@@ -22,8 +22,8 @@ class LEARN(nn.Module):
         d2=128
     ):
         super(LEARN, self).__init__()
-
-        self.act_mlp = MLP(n_actions, d1)
+        
+        self.act_gru = nn.GRU(1, d1, num_layers=n_layers, batch_first=True)
 
         self.emb = nn.Embedding(vocab_size, emb_size)
 
@@ -36,8 +36,8 @@ class LEARN(nn.Module):
         nn.init.xavier_uniform_(self.emb.weight)
 
     def forward(self, actions, langs, lengths):
-
-        ac_out = self.act_mlp(actions)
+        actions = actions.unsqueeze(-1)
+        act_out, _ = self.act_gru(actions)
         langs = langs.long()
         langs = self.emb(langs)
 

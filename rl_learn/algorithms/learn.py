@@ -9,7 +9,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 
 from rl_learn.modules import LEARN
-from rl_learn.util import Data, get_batch_lang_lengths
+from rl_learn.util import Data, get_batch_lang_lengths, get_batch_act_lengths
 
 
 @gin.configurable
@@ -100,7 +100,7 @@ class RunLEARN(object):
         actions, langs, labels = zip(*batch_data)
         langs = np.asarray(langs)
         actions, act_lengths = get_batch_lang_lengths(actions)
-        langs, lang_lengths = get_batch_lang_lengths(langs)
+        langs, lang_lengths = get_batch_act_lengths(langs)
         actions, act_lengths = torch.FloatTensor(actions), torch.LongTensor(act_lengths)
         langs, lang_lengths = torch.FloatTensor(langs), torch.LongTensor(lang_lengths)
         actions = actions.unsqueeze(-1)

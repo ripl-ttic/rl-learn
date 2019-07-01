@@ -32,6 +32,17 @@ def get_batch_lang_lengths(lang_list):
     lengths = np.clip(np.array(lengths), 0, 20)
     return langs, lengths
 
+def get_batch_act_lengths(lang_list):
+    acts = []
+    lengths = []
+    for i, l in enumerate(act_list):
+        lengths.append(len(l))
+        acts.append(np.array(pad_seq_onehot(l, 150)))
+    
+    acts = np.array(acts)
+    lengths = np.clip(np.array(lengths), 0, 150)
+    return acts, lengths
+
 def rgb2gray(image):
     return np.dot(image[...,:3], [0.299, 0.587, 0.114])
 

@@ -137,8 +137,9 @@ class Data(object):
                 lang_list.append(cond_alt)
                 labels_list.append(0)
             else:
-                action_vector_alt = np.random.random(N_ACTIONS)
-                action_vector_alt /= np.sum(action_vector_alt)
+                x = np.random.choice(TRAJ_LEN)
+                action_vector_alt = np.random.randint(0, 18, size=x)
+                # action_vector_alt /= np.sum(action_vector_alt)
                 action_list.append(action_vector_alt)
                 lang_list.append(cond)
                 labels_list.append(0)

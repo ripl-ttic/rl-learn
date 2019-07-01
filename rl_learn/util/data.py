@@ -110,24 +110,6 @@ class Data(object):
             raise NotImplementedError
         return cond
 
-    def create_data_split(self, pool, n):
-        action_list = []
-        cond_list = []
-        lang_list = []
-        elmo_list = []
-        labels_list = []
-        all_frames = []
-
-cond = None
-        if self.args.lang_enc == 'onehot':
-            cond = data_pt['onehot']
-        elif self.args.lang_enc == 'glove':
-            cond = data_pt['glove']
-        elif self.args.lang_enc == 'infersent':
-            cond = data_pt['infersent']
-        else:
-            raise NotImplementedError
-        return cond
 
     def create_data_split(self, pool, n):
         action_list = []

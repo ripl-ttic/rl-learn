@@ -133,6 +133,7 @@ class RunLEARN(object):
         log('Train loss: {}'.format(loss_train), self.logdir)
         log('Valid acc: {}'.format(acc_val), self.logdir)
         log('Valid loss: {}'.format(loss_val), self.logdir)
+        log("")
 
 def log(str, logdir):
     print(str)

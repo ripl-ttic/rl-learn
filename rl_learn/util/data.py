@@ -37,10 +37,9 @@ class Data(object):
                 actions = list(map(eval, parts[1:]))
                 self.clip_to_actions[clip_id] = actions
 
-    def compute_nonzero_actions(self, clip_id):
+    def compute_nonzero_actions(self, clip_id, r, s):
         clip_id = clip_id.strip()
-        # r, s = min(r, s), max(r, s)
-        actions = self.clip_to_actions[clip_id]#[r:s]
+        actions = self.clip_to_actions[clip_id][r:s]
         n_nonzero = sum([1 if (a>=2 and a<=5) else 0 for a in actions])
         return n_nonzero
 

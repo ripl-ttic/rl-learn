@@ -65,7 +65,7 @@ class RunLEARN(object):
                     self.best_val_acc = self.acc_val
                     self.save()
         except KeyboardInterrupt:
-            log("Caught Ctrl-C. Saving model and exiting...")
+            log("Caught Ctrl-C. Saving model and exiting...", self.logdir)
 
 
     def step(self):

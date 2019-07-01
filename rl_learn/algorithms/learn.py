@@ -27,7 +27,7 @@ class RunLEARN(object):
         self.logdir = 'train/logs/learn/onehot/'
         self.data = Data(actions_file, data_file, "onehot", n_actions)
 
-        open(logdir + 'log.txt', 'w').close()
+        open(self.logdir + 'log.txt', 'w').close()
 
         self.device = torch.device("cuda:0" if gpu and torch.cuda.is_available() else "cpu")
         self.net = LEARN(vocab_size, n_actions)

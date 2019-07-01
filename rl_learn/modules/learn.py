@@ -38,6 +38,7 @@ class LEARN(nn.Module):
     def forward(self, actions, langs, lengths):
         actions = actions.unsqueeze(-1)
         act_out, _ = self.act_gru(actions)
+        act_out = torch.mean(act_out, 1)
         langs = langs.long()
         langs = self.emb(langs)
 
@@ -48,6 +49,6 @@ class LEARN(nn.Module):
         text_out, _ = pad_packed_sequence(packed_out, batch_first=True)
         text_out = torch.mean(text_out, 1)
 
-        out = torch.cat((text_out, ac_out), 1)
+        out = torch.cat((text_out, act_out), 1)
 
         return self.concat_mlp(out)                                                                                                                                                                                                                               

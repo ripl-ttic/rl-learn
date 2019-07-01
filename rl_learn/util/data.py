@@ -94,8 +94,8 @@ class Data(object):
         self.valid_data = list(zip(self.action_list_valid, self.lang_list_valid, \
             self.labels_list_valid))
 
-        self.mean = np.mean(self.action_list_train, axis=-1)
-        self.std = np.std(self.action_list_train, axis=-1)
+        # self.mean = np.mean(self.action_list_train, axis=-1)
+        # self.std = np.std(self.action_list_train, axis=-1)
 
     def get_data_pt_cond(self, data_pt):
         cond = None

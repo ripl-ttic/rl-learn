@@ -36,6 +36,9 @@ def get_batch_act_lengths(act_list):
     acts = []
     lengths = []
     for i, l in enumerate(act_list):
+        if len(l) == 0:
+            print(l)
+            print(pad_seq_onehot(l, 150))
         lengths.append(len(l))
         acts.append(np.array(pad_seq_onehot(l, 150)))
     

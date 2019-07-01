@@ -17,7 +17,7 @@ class RunLEARN(object):
     def __init__(self,
         actions_file,
         data_file,
-        lr=1e-4,
+        lr=1e-5,
         vocab_size=296,
         n_actions=18,
         epochs=50,

@@ -8,8 +8,20 @@ import gin
 
 @gin.configurable
 class Data(object):
-    def __init__(self, args):
-        self.args = args
+    def __init__(self,
+        actions_file,
+        data_file,
+        lang_enc,
+        n_actions,
+        n_data=100000,
+        traj_len=150
+    ):
+        self.actions_file = actions_file
+        self.data_file = data_file
+        self.n_data = n_data
+        self.lang_enc = lang_enc
+        self.traj_len = traj_len
+        self.n_actions = n_actions
         self.load_data()
         self.load_actions()
         self.split_data()
@@ -17,7 +29,7 @@ class Data(object):
 
     def load_actions(self):
         self.clip_to_actions = {}
-        with open(self.args.actions_file) as f:
+        with open(self.actions_file) as f:
             for line in f.readlines():
                 line = line.strip()
                 parts = line.split()
@@ -25,10 +37,10 @@ class Data(object):
                 actions = list(map(eval, parts[1:]))
                 self.clip_to_actions[clip_id] = actions
 
-    def compute_nonzero_actions(self, clip_id, r, s):
+    def compute_nonzero_actions(self, clip_id):
         clip_id = clip_id.strip()
-        r, s = min(r, s), max(r, s)
-        actions = self.clip_to_actions[clip_id][r:s]
+        # r, s = min(r, s), max(r, s)
+        actions = self.clip_to_actions[clip_id]#[r:s]
         n_nonzero = sum([1 if (a>=2 and a<=5) else 0 for a in actions])
         return n_nonzero
 
@@ -37,14 +49,14 @@ class Data(object):
         r, s = min(r, s), max(r, s)
         actions = self.clip_to_actions[clip_id][r:s]
         action_vector = []
-        for i in range(N_ACTIONS):
+        for i in range(self.n_actions):
             action_vector.append(sum(map(lambda x:1. if x == i else 0., actions)))
         action_vector = np.array(action_vector)
         action_vector /= np.sum(action_vector)
         return action_vector
 
     def load_data(self):
-        self.data = pickle.load(open(self.args.data_file, 'rb'), encoding='bytes')
+        self.data = pickle.load(open(self.data_file, 'rb'), encoding='bytes')
 
     def split_data(self):
         self.train_pool = []
@@ -69,8 +81,8 @@ class Data(object):
 
     def create_data(self):
         self.valid_prob = 0.2
-        n_valid_data = int(self.args.n_data * self.valid_prob)
-        n_train_data = self.args.n_data - n_valid_data
+        n_valid_data = int(self.n_data * self.valid_prob)
+        n_train_data = self.n_data - n_valid_data
 
         self.action_list_train, self.lang_list_train, \
             self.labels_list_train, all_train_frames = \
@@ -88,6 +100,25 @@ class Data(object):
 
     def get_data_pt_cond(self, data_pt):
         cond = None
+        if self.lang_enc == 'onehot':
+            cond = data_pt['onehot']
+        elif self.lang_enc == 'glove':
+            cond = data_pt['glove']
+        elif self.lang_enc == 'infersent':
+            cond = data_pt['infersent']
+        else:
+            raise NotImplementedError
+        return cond
+
+    def create_data_split(self, pool, n):
+        action_list = []
+        cond_list = []
+        lang_list = []
+        elmo_list = []
+        labels_list = []
+        all_frames = []
+
+cond = None
         if self.args.lang_enc == 'onehot':
             cond = data_pt['onehot']
         elif self.args.lang_enc == 'glove':
@@ -149,3 +180,5 @@ class Data(object):
         lang_list = np.array(lang_list)
         labels_list = np.array(labels_list)
         return action_list, lang_list, labels_list, all_frames
+
+
